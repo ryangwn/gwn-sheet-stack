@@ -42,6 +42,7 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
+      - run: bun run build
       - run: bun test
 
   verify-dist:
