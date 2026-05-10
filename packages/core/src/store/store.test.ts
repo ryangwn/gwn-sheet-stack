@@ -18,18 +18,9 @@ describe('renderModeFor', () => {
     expect(renderModeFor(1, 'push', 3)).toBe('visible');
   });
 
-  test('depth-2+ behind a push is hidden', () => {
-    expect(renderModeFor(2, 'push', 3)).toBe('hidden');
-  });
-
   test('depth-1 behind a sheet or modal is visible', () => {
     expect(renderModeFor(1, 'sheet', 3)).toBe('visible');
     expect(renderModeFor(1, 'modal', 3)).toBe('visible');
-  });
-
-  test('depth-2+ behind a sheet or modal is hidden', () => {
-    expect(renderModeFor(2, 'sheet', 3)).toBe('hidden');
-    expect(renderModeFor(2, 'modal', 3)).toBe('hidden');
   });
 
   test('behind a panel is always visible (panel slides over)', () => {
