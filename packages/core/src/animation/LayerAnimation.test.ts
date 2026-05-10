@@ -1,8 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, mock, test } from 'bun:test';
 
+import type { StackStore } from '../store/types';
 import { LayerAnimation } from './LayerAnimation';
 import type { AnimationSink, AnimationValues } from './types';
+
+type StoreMock = Pick<StackStore, 'dispatch' | 'getState'>;
 
 function makeFakeScheduler() {
   const pending = new Map<number, (t: number) => void>();
@@ -47,7 +49,7 @@ describe('LayerAnimation', () => {
       {
         dispatch,
         getState: () => ({ stack: [{ id: 'L1', kind: 'k', phase: 'presenting' }] }),
-      } as any,
+      } as unknown as StoreMock,
       'L1',
       sink,
       schedule,
@@ -67,7 +69,7 @@ describe('LayerAnimation', () => {
       {
         dispatch,
         getState: () => ({ stack: [{ id: 'L1', kind: 'k', phase: 'dismissing' }] }),
-      } as any,
+      } as unknown as StoreMock,
       'L1',
       makeRecordingSink(),
       schedule,
@@ -87,7 +89,7 @@ describe('LayerAnimation', () => {
       {
         dispatch,
         getState: () => ({ stack: [{ id: 'L1', kind: 'k', phase: 'presenting' }] }),
-      } as any,
+      } as unknown as StoreMock,
       'L1',
       makeRecordingSink(),
       schedule,
@@ -109,7 +111,7 @@ describe('LayerAnimation', () => {
       {
         dispatch: () => {},
         getState: () => ({ stack: [{ id: 'L1', kind: 'k', phase: 'presenting' }] }),
-      } as any,
+      } as unknown as StoreMock,
       'L1',
       makeRecordingSink(),
       schedule,
@@ -131,7 +133,7 @@ describe('LayerAnimation', () => {
       {
         dispatch,
         getState: () => ({ stack: [{ id: 'L1', kind: 'k', phase: 'presenting' }] }),
-      } as any,
+      } as unknown as StoreMock,
       'L1',
       sink,
       schedule,
@@ -163,7 +165,7 @@ describe('LayerAnimation', () => {
       {
         dispatch,
         getState: () => ({ stack: [{ id: 'L1', kind: 'k', phase: 'presenting' }] }),
-      } as any,
+      } as unknown as StoreMock,
       'L1',
       sink,
       () => 1,
@@ -184,7 +186,7 @@ describe('LayerAnimation', () => {
       {
         dispatch,
         getState: () => ({ stack: [{ id: 'L1', kind: 'k', phase: 'presenting' }] }),
-      } as any,
+      } as unknown as StoreMock,
       'L1',
       makeRecordingSink(),
       schedule,
@@ -205,7 +207,7 @@ describe('LayerAnimation', () => {
       {
         dispatch: () => {},
         getState: () => ({ stack: [{ id: 'L1', kind: 'k', phase: 'presenting' }] }),
-      } as any,
+      } as unknown as StoreMock,
       'L1',
       sink,
       schedule,

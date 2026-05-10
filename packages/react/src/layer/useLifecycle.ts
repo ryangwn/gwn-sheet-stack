@@ -23,8 +23,10 @@ export function useLifecycle(callbacks: LifecycleCallbacks): void {
 
   const prevPhaseRef = useRef<LayerPhase | null>(null);
   const callbacksRef = useRef(callbacks);
-  // eslint-disable-next-line react-hooks/refs
-  callbacksRef.current = callbacks;
+
+  useLayoutEffect(() => {
+    callbacksRef.current = callbacks;
+  });
 
   useLayoutEffect(() => {
     const prev = prevPhaseRef.current;

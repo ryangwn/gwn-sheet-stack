@@ -3,12 +3,22 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
+interface PackageJson {
+  name: string;
+  private?: boolean;
+  main?: string;
+  types?: string;
+  svelte?: string;
+  exports?: ExportsField;
+}
+
+type ExportsField = string | { [key: string]: ExportsField } | null | undefined;
+
 type Pkg = {
   dir: string;
   name: string;
   private: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  json: any;
+  json: PackageJson;
 };
 
 const ROOT = process.cwd();
@@ -28,15 +38,14 @@ function loadPublic(): Pkg[] {
     if (!e.isDirectory()) continue;
     const path = join(PACKAGES_DIR, e.name, 'package.json');
     if (!existsSync(path)) continue;
-    const json = JSON.parse(readFileSync(path, 'utf8'));
+    const json = JSON.parse(readFileSync(path, 'utf8')) as PackageJson;
     if (json.private) continue;
     out.push({ dir: join(PACKAGES_DIR, e.name), name: json.name, private: false, json });
   }
   return out;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function collectExportTargets(exportsField: any, acc: string[] = []): string[] {
+function collectExportTargets(exportsField: ExportsField, acc: string[] = []): string[] {
   if (!exportsField) return acc;
   if (typeof exportsField === 'string') {
     if (exportsField.startsWith('./')) acc.push(exportsField);

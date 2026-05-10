@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, mock, test } from 'bun:test';
 
 import { createStackStore } from '../index';
@@ -99,7 +98,7 @@ describe('RouterAdapter wiring', () => {
     const adapter = makeMockAdapter();
     const store = createStackStore({ mountWindow: 3, router: adapter });
     store.hydrate([{ id: 'L1', kind: 'a', phase: 'active' }]);
-    expect((store.getState().stack[0] as any).hydrated).toBe(true);
+    expect((store.getState().stack[0] as unknown as { hydrated?: boolean }).hydrated).toBe(true);
   });
 
   test('hydrated layers have no resolve (promise never settles)', () => {
@@ -119,6 +118,6 @@ describe('RouterAdapter wiring', () => {
     store.push({ kind: 'demo', props: { x: 1 } });
     const serialized = store.serialize();
     expect(serialized[0]).toMatchObject({ kind: 'demo' });
-    expect((serialized[0] as any).resolve).toBeUndefined();
+    expect((serialized[0] as unknown as { resolve?: unknown }).resolve).toBeUndefined();
   });
 });

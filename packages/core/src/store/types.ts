@@ -2,7 +2,6 @@ import type { EventBus } from '../event/eventBus';
 import type { LayerEvent, LayerPhase, PresentationKind } from './fsm';
 
 /** Extend this interface via module augmentation to type-check `push`. */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface SheetRegistry {}
 
 type RegistryKind = keyof SheetRegistry;

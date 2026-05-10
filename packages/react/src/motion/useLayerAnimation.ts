@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { type AnimationSink, type AnimationValues, LayerAnimation } from 'gwn-sheet-stack-core';
 
@@ -28,20 +28,16 @@ export function useLayerAnimation({
   const coordinator = useMotionCoordinator();
 
   // Stable sink — closes over the coordinator + layerId.
-  const sinkRef = useRef<AnimationSink | null>(null);
-  if (sinkRef.current === null) {
-    sinkRef.current = {
+  const sink = useMemo<AnimationSink>(
+    () => ({
       write(values: AnimationValues) {
         coordinator.writeLayer(layerId, values);
       },
-    };
-  }
-
-  const animation = useMemo(
-    // eslint-disable-next-line react-hooks/refs
-    () => new LayerAnimation(store, layerId, sinkRef.current!),
-    [store, layerId],
+    }),
+    [coordinator, layerId],
   );
+
+  const animation = useMemo(() => new LayerAnimation(store, layerId, sink), [store, layerId, sink]);
 
   useEffect(() => {
     const surface = surfaceRef.current;

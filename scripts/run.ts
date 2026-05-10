@@ -14,8 +14,16 @@ type Pkg = {
 const ROOT = process.cwd();
 const PACKAGES_DIR = join(ROOT, 'packages');
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function readJson(path: string): any {
+interface PackageJson {
+  name: string;
+  private?: boolean;
+  scripts?: Record<string, string>;
+  dependencies?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+}
+
+function readJson(path: string): unknown {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
 
@@ -26,11 +34,11 @@ function loadPackages(): Pkg[] {
     if (!e.isDirectory()) continue;
     const pkgPath = join(PACKAGES_DIR, e.name, 'package.json');
     if (!existsSync(pkgPath)) continue;
-    const json = readJson(pkgPath);
+    const json = readJson(pkgPath) as PackageJson;
     const deps = new Set<string>();
     for (const field of ['dependencies', 'peerDependencies', 'devDependencies'] as const) {
       const block = json[field] ?? {};
-      for (const [name, ver] of Object.entries<string>(block)) {
+      for (const [name, ver] of Object.entries(block)) {
         if (typeof ver === 'string' && ver.startsWith('workspace:')) deps.add(name);
       }
     }

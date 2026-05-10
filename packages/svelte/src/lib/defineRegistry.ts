@@ -21,15 +21,12 @@ type PresentationDef =
   | { kind: 'panel'; side: 'left' | 'right'; width: number | string; modal?: boolean }
   | { kind: 'push'; edgeSwipeBack?: boolean };
 
-interface RegistryEntry {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  component: Component<any>;
+interface RegistryEntry<P extends Record<string, unknown> = Record<string, unknown>> {
+  component: Component<P>;
   presentation?: PresentationDef;
   url?: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    encode(props: any): string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    decode(s: string): any;
+    encode(props: P): string;
+    decode(s: string): P;
   };
 }
 

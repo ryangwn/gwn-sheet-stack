@@ -30,8 +30,6 @@ import { useFocusTrap } from './useFocusTrap';
 import { useScaleBackground } from './useScaleBackground';
 import { useSheetGesture } from './useSheetGesture';
 
-// ─── Detent helpers ───────────────────────────────────────────────────────────
-
 function fractionForDetent(detent: DetentSpec, _containerHeight: number): number {
   return detent.size;
 }
@@ -66,8 +64,6 @@ function computeCssVars(
     '--ss-progress-to-largest': String(progressToLargest),
   };
 }
-
-// ─── Sheet.Container ─────────────────────────────────────────────────────────
 
 interface SheetContainerProps {
   detents: DetentSpec[];
@@ -125,11 +121,10 @@ function SheetContainer({
   const layer = state.stack.find((l) => l.id === layerId);
   const layerIdx = state.stack.findIndex((l) => l.id === layerId);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const containerHeightRef = useRef(0);
+  const [containerHeight, setContainerHeight] = useState(0);
   useKeyboardAvoidance(containerRef, { enabled: repositionInputs });
   useFocusTrap(containerRef, { enabled: trapFocus });
 
-  // ─── iOS Safari hardening ───────────────────────────────────────────────────
   const phase = layer?.phase;
   const isOpen =
     phase === 'mounting' ||
@@ -137,9 +132,8 @@ function SheetContainer({
     phase === 'active' ||
     phase === 'dragging' ||
     phase === 'snapping';
-  const hasBeenOpenedRef = useRef(false);
-  // eslint-disable-next-line react-hooks/refs
-  if (isOpen) hasBeenOpenedRef.current = true;
+  const [hasBeenOpened, setHasBeenOpened] = useState(isOpen);
+  if (isOpen && !hasBeenOpened) setHasBeenOpened(true);
   const nested = layerIdx > 0;
 
   usePreventScroll({ isDisabled: !isOpen || disablePreventScroll || !modal });
@@ -147,8 +141,7 @@ function SheetContainer({
     isOpen,
     modal,
     nested,
-    // eslint-disable-next-line react-hooks/refs
-    hasBeenOpened: hasBeenOpenedRef.current,
+    hasBeenOpened,
     preventScrollRestoration,
     noBodyStyles,
   });
@@ -174,10 +167,14 @@ function SheetContainer({
   });
 
   useLayoutEffect(() => {
-    if (containerRef.current) {
-      containerHeightRef.current = containerRef.current.offsetHeight;
-    }
-  });
+    const el = containerRef.current;
+    if (!el) return;
+    setContainerHeight(el.offsetHeight);
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => setContainerHeight(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // Handle 'snapping' phase → dispatch SNAPPED immediately for *programmatic* snaps
   // (which arrive from 'active'). Gesture-driven snaps arrive from 'dragging' and the
@@ -195,8 +192,7 @@ function SheetContainer({
     }
   });
 
-  // eslint-disable-next-line react-hooks/refs
-  const cssVars = computeCssVars(detents, currentDetentId, containerHeightRef.current, side);
+  const cssVars = computeCssVars(detents, currentDetentId, containerHeight, side);
 
   // largestUndimmedDetentId: backdrop stays transparent at/below this detent
   if (largestUndimmedDetentId) {
@@ -226,9 +222,8 @@ function SheetContainer({
   // that updates --ss-translate-pct to the detent value — that's the change the CSS
   // transition animates against.
   const [entered, setEntered] = useState(false);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!entered && (phase === 'presenting' || phase === 'active')) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEntered(true);
     }
   }, [entered, phase]);
@@ -285,7 +280,6 @@ function SheetContainer({
     return () => clearTimeout(watchdog);
   }, [phase, layerId, store]);
 
-  // ─── A11y: title/description registration + dismiss requests ────────────────
   const generatedId = useId();
   const titleId = `${generatedId}-title`;
   const descriptionId = `${generatedId}-description`;
@@ -363,8 +357,6 @@ function SheetContainer({
   );
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
 function SheetBackdrop({ children }: { children?: React.ReactNode }) {
   return <div data-sheetstack-backdrop>{children}</div>;
 }
@@ -437,8 +429,6 @@ function SheetClose({ children, onClick, ...props }: SheetCloseProps) {
     </button>
   );
 }
-
-// ─── Namespace export ─────────────────────────────────────────────────────────
 
 export const Sheet = {
   Container: SheetContainer,

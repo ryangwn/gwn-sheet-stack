@@ -11,8 +11,7 @@ import { useStackState } from '../stack/context';
 import { HiddenPolyfill } from './HiddenPolyfill.tsx';
 
 interface StageProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  registry: Record<string, React.ComponentType<any>>;
+  registry: Record<string, React.ComponentType<Record<string, unknown>>>;
   mountWindow?: number;
 }
 

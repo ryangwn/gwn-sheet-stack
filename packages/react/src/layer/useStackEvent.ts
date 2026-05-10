@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { useStack } from '../stack/context';
 
@@ -12,8 +12,18 @@ export function useStackEvent<T = unknown>(
   opts: UseStackEventOptions = {},
 ): void {
   const store = useStack();
+  const sticky = opts.sticky;
+  const handlerRef = useRef(handler);
 
   useEffect(() => {
-    return store.events.subscribe<T>(name, handler, opts);
-  }, [name, opts.sticky]);
+    handlerRef.current = handler;
+  });
+
+  useEffect(() => {
+    return store.events.subscribe<T>(
+      name,
+      (payload) => handlerRef.current(payload),
+      sticky ? { sticky } : {},
+    );
+  }, [name, sticky, store.events]);
 }

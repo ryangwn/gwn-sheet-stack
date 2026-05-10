@@ -8,7 +8,7 @@ import {
 } from 'gwn-sheet-stack-core';
 
 import { useLayerId } from '../layer/LayerContext';
-import { useStack, useStackState } from '../stack/context';
+import { useStack } from '../stack/context';
 import type { DetentSpec } from './SheetContext';
 import { attachPan } from './attachPan';
 
@@ -48,9 +48,6 @@ export function useSheetGesture({
 }: UseSheetGestureOptions) {
   const layerId = useLayerId();
   const store = useStack();
-  const state = useStackState();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _layer = state.stack.find((l) => l.id === layerId);
 
   const driverRef = useRef<SpringDriver | null>(null);
   const startTranslateRef = useRef(0);
@@ -218,15 +215,21 @@ export function useSheetGesture({
     });
 
     return detach;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     layerId,
+    store,
+    containerRef,
+    panTargetRef,
     detents,
     currentDetentId,
     dismissible,
     topEdgeScroll,
+    dismissVelocityThreshold,
+    snapVelocityThreshold,
     fastFlickThreshold,
+    closeThreshold,
     fadeFromIndex,
+    onAnimationEnd,
     enabled,
   ]);
 }

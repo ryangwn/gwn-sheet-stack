@@ -1,8 +1,7 @@
 import { useStack, useStackState } from '../stack/context';
 import { useLayerId } from './LayerContext';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function useLayer<_K extends string = string>() {
+export function useLayer() {
   const layerId = useLayerId();
   const store = useStack();
   const state = useStackState();

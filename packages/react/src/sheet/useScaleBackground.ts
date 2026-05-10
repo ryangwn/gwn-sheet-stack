@@ -17,11 +17,6 @@ function assignStyle(
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function chain(...fns: Array<() => void>): () => void {
-  return () => fns.forEach((fn) => fn());
-}
-
 const noop = () => {};
 
 export interface UseScaleBackgroundOptions {
@@ -89,8 +84,7 @@ export function useScaleBackground({
         }
       }, TRANSITIONS.DURATION * 1000);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, enabled, side]);
+  }, [isOpen, enabled, side, setBackgroundColorOnScale, noBodyStyles, initialBackgroundColor]);
 }
 
 // Re-export for users who want to use the same transition curve elsewhere.

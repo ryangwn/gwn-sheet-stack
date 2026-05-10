@@ -86,5 +86,5 @@ export function useKeyboardAvoidance(
       el.removeEventListener('pointercancel', onDragEnd);
       revert();
     };
-  }, [enabled]);
+  }, [enabled, layerRef]);
 }
