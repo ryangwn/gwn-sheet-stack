@@ -11,13 +11,13 @@
     "gwn-sheet-stack-react": "workspace:*"
   },
   "devDependencies": {
-    "@storybook/addon-docs": "10.3.5",
-    "@storybook/react": "10.3.5",
-    "@storybook/react-vite": "10.3.5",
-    "react": "^18",
-    "react-dom": "^18",
-    "storybook": "10.3.5",
-    "typescript": "~5",
-    "vite": "^6"
+    "@storybook/addon-docs": "10.3.6",
+    "@storybook/react": "10.3.6",
+    "@storybook/react-vite": "10.3.6",
+    "react": "^19",
+    "react-dom": "^19",
+    "storybook": "10.3.6",
+    "typescript": "~6",
+    "vite": "^8"
   }
 }
