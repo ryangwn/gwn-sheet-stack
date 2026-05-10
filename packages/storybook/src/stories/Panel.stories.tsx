@@ -4,8 +4,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { createStackStore } from 'gwn-sheet-stack-core';
 import { Panel, StackProvider, Stage, useStack } from 'gwn-sheet-stack-react';
 
-// ─── Shared scene helpers ─────────────────────────────────────────────────────
-
 function Trigger({ kind, label = 'Open panel' }: { kind: string; label?: string }) {
   const { push } = useStack();
   return (
@@ -52,8 +50,6 @@ function SceneWrapper({
     </StackProvider>
   );
 }
-
-// ─── Panel content components ─────────────────────────────────────────────────
 
 function RightPanelContent() {
   return (
@@ -110,15 +106,11 @@ function NonModalPanelContent() {
   );
 }
 
-// ─── Meta ─────────────────────────────────────────────────────────────────────
-
 const meta: Meta = {
   title: 'Panel',
 };
 
 export default meta;
-
-// ─── Stories ─────────────────────────────────────────────────────────────────
 
 export const RightPanel: StoryObj = {
   render: () => (

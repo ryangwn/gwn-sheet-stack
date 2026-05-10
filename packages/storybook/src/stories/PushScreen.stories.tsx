@@ -4,8 +4,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { createStackStore } from 'gwn-sheet-stack-core';
 import { PushScreen, StackProvider, Stage, useStack } from 'gwn-sheet-stack-react';
 
-// ─── Shared scene helpers ─────────────────────────────────────────────────────
-
 function Trigger({ kind, label = 'Push screen' }: { kind: string; label?: string }) {
   const { push } = useStack();
   return (
@@ -52,8 +50,6 @@ function SceneWrapper({
     </StackProvider>
   );
 }
-
-// ─── PushScreen content components ───────────────────────────────────────────
 
 function DefaultScreenContent() {
   const { pop } = useStack();
@@ -120,15 +116,11 @@ function NoEdgeSwipeContent() {
   );
 }
 
-// ─── Meta ─────────────────────────────────────────────────────────────────────
-
 const meta: Meta = {
   title: 'PushScreen',
 };
 
 export default meta;
-
-// ─── Stories ─────────────────────────────────────────────────────────────────
 
 export const Default: StoryObj = {
   render: () => (

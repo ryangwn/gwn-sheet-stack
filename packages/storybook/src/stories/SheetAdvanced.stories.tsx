@@ -11,8 +11,6 @@ import {
   useStack,
 } from 'gwn-sheet-stack-react';
 
-// ─── Shared scene ─────────────────────────────────────────────────────────────
-
 function Trigger({ kind, label = 'Open sheet' }: { kind: string; label?: string }) {
   const { push } = useStack();
   return (
@@ -59,8 +57,6 @@ function SceneWrapper({
     </StackProvider>
   );
 }
-
-// ─── 1. Handle-only drag ──────────────────────────────────────────────────────
 
 function HandleOnlyContent() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -111,8 +107,6 @@ function HandleOnlyContent() {
   );
 }
 
-// ─── 2. topEdgeScroll='expand' with scrollable content ────────────────────────
-
 function ScrollableContent() {
   return (
     <Sheet.Container
@@ -149,8 +143,6 @@ function ScrollableContent() {
     </Sheet.Container>
   );
 }
-
-// ─── 3. useLifecycle event log ────────────────────────────────────────────────
 
 function LifecycleLogContent() {
   const [log, setLog] = useState<string[]>([]);
@@ -201,8 +193,6 @@ function LifecycleLogContent() {
   );
 }
 
-// ─── 4. googleMapsDetents preset ──────────────────────────────────────────────
-
 function GoogleMapsPresetContent() {
   return (
     <Sheet.Container
@@ -234,8 +224,6 @@ function GoogleMapsPresetContent() {
     </Sheet.Container>
   );
 }
-
-// ─── 5. Input + keyboard avoidance ────────────────────────────────────────────
 
 function FormContent() {
   return (
@@ -280,8 +268,6 @@ function FormContent() {
     </Sheet.Container>
   );
 }
-
-// ─── Meta ─────────────────────────────────────────────────────────────────────
 
 const meta: Meta = { title: 'Sheet/Advanced' };
 export default meta;

@@ -52,8 +52,6 @@ function PageScaffold({
   );
 }
 
-// ─── A11y: Title + Description + Close ────────────────────────────────────────
-
 function A11ySheet() {
   return (
     <Sheet.Container detents={[{ id: 'default', size: 0.5 }]} initialDetent="default" side="bottom">
@@ -84,8 +82,6 @@ function A11ySheet() {
   );
 }
 
-// ─── Background scaling ───────────────────────────────────────────────────────
-
 function ScaleSheet() {
   return (
     <Sheet.Container
@@ -102,8 +98,6 @@ function ScaleSheet() {
     </Sheet.Container>
   );
 }
-
-// ─── fadeFromIndex: granular backdrop fade ────────────────────────────────────
 
 function FadeFromIndexSheet() {
   return (
@@ -130,8 +124,6 @@ function FadeFromIndexSheet() {
     </Sheet.Container>
   );
 }
-
-// ─── closeThreshold variants ──────────────────────────────────────────────────
 
 function makeCloseThresholdSheet(closeThreshold: number, label: string) {
   return function CloseThresholdSheet() {
@@ -163,8 +155,6 @@ const EasyCloseSheet = makeCloseThresholdSheet(0.1, 'Easy close — drag 10%');
 const DefaultCloseSheet = makeCloseThresholdSheet(0.25, 'Default close — drag 25% (vaul)');
 const HardCloseSheet = makeCloseThresholdSheet(0.5, 'Hard close — drag 50%');
 const VelocityOnlySheet = makeCloseThresholdSheet(1, 'Velocity-only — flick to close');
-
-// ─── Non-dismissible (Escape no-op) ───────────────────────────────────────────
 
 function NonDismissibleSheet() {
   return (

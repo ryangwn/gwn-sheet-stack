@@ -4,8 +4,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { createStackStore } from 'gwn-sheet-stack-core';
 import { Sheet, StackProvider, Stage, useStack } from 'gwn-sheet-stack-react';
 
-// ─── Shared scene helpers ─────────────────────────────────────────────────────
-
 function Trigger({ kind, label = 'Open sheet' }: { kind: string; label?: string }) {
   const { push } = useStack();
   return (
@@ -52,8 +50,6 @@ function SceneWrapper({
     </StackProvider>
   );
 }
-
-// ─── Sheet content components ─────────────────────────────────────────────────
 
 function BottomSheetContent() {
   return (
@@ -112,15 +108,11 @@ function GoogleMapsStyleContent() {
   );
 }
 
-// ─── Meta ─────────────────────────────────────────────────────────────────────
-
 const meta: Meta = {
   title: 'Sheet',
 };
 
 export default meta;
-
-// ─── Stories ─────────────────────────────────────────────────────────────────
 
 export const BottomSheet: StoryObj = {
   render: () => (

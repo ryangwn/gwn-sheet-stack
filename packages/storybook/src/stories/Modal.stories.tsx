@@ -4,8 +4,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { createStackStore } from 'gwn-sheet-stack-core';
 import { Modal, StackProvider, Stage, useStack } from 'gwn-sheet-stack-react';
 
-// ─── Shared scene helpers ─────────────────────────────────────────────────────
-
 function Trigger({ kind, label = 'Open modal' }: { kind: string; label?: string }) {
   const { push } = useStack();
   return (
@@ -52,8 +50,6 @@ function SceneWrapper({
     </StackProvider>
   );
 }
-
-// ─── Modal content components ─────────────────────────────────────────────────
 
 function DefaultModalContent() {
   return (
@@ -121,15 +117,11 @@ function FitModalContent() {
   );
 }
 
-// ─── Meta ─────────────────────────────────────────────────────────────────────
-
 const meta: Meta = {
   title: 'Modal',
 };
 
 export default meta;
-
-// ─── Stories ─────────────────────────────────────────────────────────────────
 
 export const Default: StoryObj = {
   render: () => (
