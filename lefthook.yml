@@ -1,0 +1,12 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint-staged:
+      run: bunx lint-staged
+    typecheck:
+      run: bun tsc --noEmit --project packages/core/tsconfig.json && bun tsc --noEmit --project packages/react/tsconfig.json
+
+commit-msg:
+  commands:
+    commitlint:
+      run: bunx commitlint --edit {1}

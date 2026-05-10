@@ -1,0 +1,11 @@
+# .local AI Skills
+/.agents
+/.claude
+skills-lock.json
+/docs
+/.scratch
+
+# Build
+node_modules
+dist
+/.svelte-kit
