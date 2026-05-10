@@ -1,0 +1,23 @@
+{
+  "name": "gwn-sheet-stack-storybook",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node node_modules/storybook/dist/bin/dispatcher.js dev -p 6006",
+    "build": "node node_modules/storybook/dist/bin/dispatcher.js build -o dist"
+  },
+  "dependencies": {
+    "gwn-sheet-stack-core": "workspace:*",
+    "gwn-sheet-stack-react": "workspace:*"
+  },
+  "devDependencies": {
+    "@storybook/addon-docs": "10.3.5",
+    "@storybook/react": "10.3.5",
+    "@storybook/react-vite": "10.3.5",
+    "react": "^18",
+    "react-dom": "^18",
+    "storybook": "10.3.5",
+    "typescript": "~5",
+    "vite": "^6"
+  }
+}

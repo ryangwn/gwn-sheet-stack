@@ -1,0 +1,55 @@
+{
+  "name": "gwn-sheet-stack-adapters-router-next",
+  "version": "0.0.0",
+  "description": "Next.js App Router adapter for sheet-stack.",
+  "keywords": [
+    "sheet",
+    "modal",
+    "next",
+    "next.js",
+    "router",
+    "sheet-stack"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/ryangwn/gwn-sheet-stack#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryangwn/gwn-sheet-stack.git",
+    "directory": "packages/adapters-router-next"
+  },
+  "bugs": {
+    "url": "https://github.com/ryangwn/gwn-sheet-stack/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean --external react --external next --external gwn-sheet-stack-core",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'No tests (requires Next.js env)'"
+  },
+  "peerDependencies": {
+    "next": ">=14",
+    "react": ">=18",
+    "gwn-sheet-stack-core": "workspace:*"
+  },
+  "devDependencies": {
+    "gwn-sheet-stack-core": "workspace:*"
+  }
+}

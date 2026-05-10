@@ -1,0 +1,53 @@
+{
+  "name": "gwn-sheet-stack-svelte",
+  "version": "0.0.0",
+  "description": "Svelte 5 bindings for sheet-stack.",
+  "keywords": [
+    "sheet",
+    "modal",
+    "svelte",
+    "stack",
+    "gesture"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/ryangwn/gwn-sheet-stack#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryangwn/gwn-sheet-stack.git",
+    "directory": "packages/svelte"
+  },
+  "bugs": {
+    "url": "https://github.com/ryangwn/gwn-sheet-stack/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "svelte": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "svelte": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "svelte-package -i src",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'No unit tests (use @testing-library/svelte in apps/playground-svelte)'"
+  },
+  "peerDependencies": {
+    "svelte": "^5",
+    "gwn-sheet-stack-core": "workspace:*"
+  },
+  "devDependencies": {
+    "gwn-sheet-stack-core": "workspace:*"
+  }
+}

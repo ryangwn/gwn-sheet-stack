@@ -1,0 +1,63 @@
+{
+  "name": "gwn-sheet-stack-react",
+  "version": "0.0.0",
+  "description": "React bindings for sheet-stack.",
+  "keywords": [
+    "sheet",
+    "modal",
+    "react",
+    "stack",
+    "gesture"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/ryangwn/gwn-sheet-stack#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryangwn/gwn-sheet-stack.git",
+    "directory": "packages/react"
+  },
+  "bugs": {
+    "url": "https://github.com/ryangwn/gwn-sheet-stack/issues"
+  },
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./styles": "./dist/styles.css",
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean --external react --external react-dom --external gwn-sheet-stack-core && cp src/styles.css dist/styles.css",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test --preload ./src/setup.ts"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18",
+    "gwn-sheet-stack-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^20.9.0",
+    "@testing-library/react": "^16",
+    "gwn-sheet-stack-core": "workspace:*",
+    "happy-dom": "^20.9.0",
+    "react": "^18",
+    "react-dom": "^18"
+  }
+}
