@@ -1,0 +1,74 @@
+name: Canary
+
+on:
+  push:
+    branches: [master]
+
+concurrency:
+  group: canary-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  canary:
+    name: Canary
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      NPM_CONFIG_PROVENANCE: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for pending changesets
+        id: check
+        run: |
+          shopt -s nullglob
+          files=(.changeset/*.md)
+          pending=0
+          for f in "${files[@]}"; do
+            base="$(basename "$f")"
+            if [ "$base" = "README.md" ]; then continue; fi
+            pending=1
+            break
+          done
+          echo "pending=$pending" >> "$GITHUB_OUTPUT"
+
+      - name: Skip (no pending changesets)
+        if: steps.check.outputs.pending == '0'
+        run: echo "No pending changesets — skipping canary publish."
+
+      - uses: oven-sh/setup-bun@v2
+        if: steps.check.outputs.pending == '1'
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        if: steps.check.outputs.pending == '1'
+        run: bun install --frozen-lockfile
+
+      - name: Build packages (topological)
+        if: steps.check.outputs.pending == '1'
+        run: bun run build
+
+      - name: Verify dist
+        if: steps.check.outputs.pending == '1'
+        run: bun run verify:dist
+
+      - name: Configure npm auth
+        if: steps.check.outputs.pending == '1'
+        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Snapshot version
+        if: steps.check.outputs.pending == '1'
+        run: bunx changeset version --snapshot canary
+
+      - name: Publish canary
+        if: steps.check.outputs.pending == '1'
+        run: bunx changeset publish --tag canary --no-git-tag
+        env:
+          NPM_CONFIG_PROVENANCE: 'true'
