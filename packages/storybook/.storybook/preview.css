@@ -1,0 +1,28 @@
+/* Storybook demo overrides — sheet positioning + transitions ship in gwn-sheet-stack-react/styles. */
+
+/* Override host transform from package styles.css. The `transform: scale(...)`
+ * makes host the containing-block for fixed descendants (modal, sheet, panel,
+ * push), so their `top:50%` etc. resolve against the collapsed host instead of
+ * the viewport. Until issue #13 (background scaling chrome) reworks this, we
+ * disable the host transform in the demo. */
+body [data-sheetstack-host] {
+  transform: none;
+  border-radius: 0;
+}
+
+[data-sheetstack-presentation='modal'] {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+}
+
+/* Hide the sheet's internal backdrop in the demo (sheet has its own bg). */
+[data-sheetstack-presentation='sheet'] [data-sheetstack-backdrop] {
+  display: none;
+}
+
+/* Layer-level backdrop (Modal renders one as a sibling of the dialog). */
+[data-sheetstack-layer] > [data-sheetstack-backdrop] {
+  background: rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+}

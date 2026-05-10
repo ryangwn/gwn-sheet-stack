@@ -1,0 +1,78 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Introduction" />
+
+# sheet-stack
+
+A presentation layer stack for React — sheets, modals, panels, and push screens, all driven by a single store.
+
+## Quick start
+
+```bash
+bun add gwn-sheet-stack-react gwn-sheet-stack-core
+```
+
+### 1. Create a store and wrap your app
+
+```tsx
+import { useMemo } from 'react';
+
+import { createStackStore } from 'gwn-sheet-stack-core';
+import { StackProvider, Stage } from 'gwn-sheet-stack-react';
+
+function App() {
+  const store = useMemo(() => createStackStore({ mountWindow: 3 }), []);
+
+  return (
+    <StackProvider value={store}>
+      <YourApp />
+      <Stage registry={{ modal: MyModal, sheet: MySheet }} />
+    </StackProvider>
+  );
+}
+```
+
+### 2. Push a layer from anywhere in the tree
+
+```tsx
+import { useStack } from 'gwn-sheet-stack-react';
+
+function TriggerButton() {
+  const { push } = useStack();
+  return <button onClick={() => push({ kind: 'modal' })}>Open modal</button>;
+}
+```
+
+### 3. Build your presentation component
+
+Presentation components are rendered inside `Stage` when their `kind` is pushed. Use the compound components to structure content:
+
+```tsx
+import { Modal } from 'gwn-sheet-stack-react';
+
+function MyModal() {
+  return (
+    <Modal size="md" dismissible>
+      <h2>Hello!</h2>
+      <p>Click outside to dismiss.</p>
+    </Modal>
+  );
+}
+```
+
+## Presentation types
+
+| Component    | Description                                                |
+| ------------ | ---------------------------------------------------------- |
+| `Sheet`      | Bottom / top / side sheet with detents and gesture support |
+| `Modal`      | Centred dialog with scale animation                        |
+| `Panel`      | Side drawer (left or right)                                |
+| `PushScreen` | Full-screen push navigation with edge-swipe back           |
+
+## Opt-in styles
+
+```ts
+import 'gwn-sheet-stack-react/styles';
+```
+
+Adds default backdrop dimming, host scaling, and `will-change` hints. Fully overridable via CSS.
