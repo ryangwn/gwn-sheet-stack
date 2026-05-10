@@ -2,15 +2,20 @@ name: Canary
 
 on:
   push:
-    branches: [master]
+    branches:
+      - 'canary/*'
 
 concurrency:
   group: canary-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  canary:
-    name: Canary
+  verify:
+    uses: ./.github/workflows/_verify.yml
+
+  publish:
+    name: Publish canary
+    needs: verify
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -40,22 +45,11 @@ jobs:
         if: steps.check.outputs.pending == '0'
         run: echo "No pending changesets — skipping canary publish."
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: ./.github/actions/setup
         if: steps.check.outputs.pending == '1'
-        with:
-          bun-version: latest
 
-      - name: Install dependencies
+      - uses: ./.github/actions/build
         if: steps.check.outputs.pending == '1'
-        run: bun install --frozen-lockfile
-
-      - name: Build packages (topological)
-        if: steps.check.outputs.pending == '1'
-        run: bun run build
-
-      - name: Verify dist
-        if: steps.check.outputs.pending == '1'
-        run: bun run verify:dist
 
       - name: Configure npm auth
         if: steps.check.outputs.pending == '1'
