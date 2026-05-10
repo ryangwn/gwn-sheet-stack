@@ -1,6 +1,6 @@
 import { createContext, useContext, useSyncExternalStore } from 'react';
 
-import type { StackStore, State } from 'gwn-sheet-stack-core';
+import type { StackStore, State } from '@gwn-sheet-stack/core';
 
 const StackContext = createContext<StackStore | null>(null);
 

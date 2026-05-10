@@ -1,4 +1,4 @@
-import type { SheetRegistry } from 'gwn-sheet-stack-core';
+import type { SheetRegistry } from '@gwn-sheet-stack/core';
 
 import { getLayerContext, getStackContext } from './context';
 

@@ -1,6 +1,6 @@
 import { getContext, setContext } from 'svelte';
 
-import type { StackStore } from 'gwn-sheet-stack-core';
+import type { StackStore } from '@gwn-sheet-stack/core';
 
 const STACK_KEY = Symbol('sheetstack');
 const LAYER_KEY = Symbol('sheetstack-layer');

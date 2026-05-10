@@ -1,6 +1,6 @@
 {
-  "name": "gwn-sheet-stack-adapters-router-tanstack",
-  "version": "0.0.0",
+  "name": "@gwn-sheet-stack/adapters-router-tanstack",
+  "version": "0.0.1",
   "description": "TanStack Router adapter for sheet-stack.",
   "keywords": [
     "sheet",
@@ -39,15 +39,15 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean --external @tanstack/react-router --external gwn-sheet-stack-core",
+    "build": "tsup src/index.ts --format esm --dts --clean --external @tanstack/react-router --external @gwn-sheet-stack/core",
     "typecheck": "tsc --noEmit",
     "test": "echo 'No tests (requires TanStack Router env)'"
   },
   "peerDependencies": {
     "@tanstack/react-router": ">=1",
-    "gwn-sheet-stack-core": "workspace:*"
+    "@gwn-sheet-stack/core": "workspace:*"
   },
   "devDependencies": {
-    "gwn-sheet-stack-core": "workspace:*"
+    "@gwn-sheet-stack/core": "workspace:*"
   }
 }

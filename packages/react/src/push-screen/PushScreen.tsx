@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-import { decidePushGesture } from 'gwn-sheet-stack-core';
+import { decidePushGesture } from '@gwn-sheet-stack/core';
 
 import { attachPanBase } from '../gesture/attachPanBase';
 import { useLayerId } from '../layer/LayerContext';

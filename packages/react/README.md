@@ -1,20 +1,20 @@
-# gwn-sheet-stack-react
+# @gwn-sheet-stack/react
 
 React 18+ bindings for [sheet-stack](https://github.com/ryangwn/gwn-sheet-stack).
 
 ## Install
 
 ```bash
-bun add gwn-sheet-stack-core gwn-sheet-stack-react
+bun add @gwn-sheet-stack/core @gwn-sheet-stack/react
 ```
 
-`gwn-sheet-stack-core` is a peer dependency — install it alongside.
+`@gwn-sheet-stack/core` is a peer dependency — install it alongside.
 
 ## Quick start
 
 ```tsx
-import { Modal, Panel, PushScreen, Sheet, StackProvider, Stage } from 'gwn-sheet-stack-react';
-import 'gwn-sheet-stack-react/styles.css';
+import { Modal, Panel, PushScreen, Sheet, StackProvider, Stage } from '@gwn-sheet-stack/react';
+import '@gwn-sheet-stack/react/styles.css';
 
 const registry = {
   cart: CartSheet,
@@ -60,8 +60,8 @@ One `<Stage />` per app. Mount it inside `<StackProvider>` so it can reach the s
 
 ```ts
 // or
-import 'gwn-sheet-stack-react/styles';
-import 'gwn-sheet-stack-react/styles.css';
+import '@gwn-sheet-stack/react/styles';
+import '@gwn-sheet-stack/react/styles.css';
 ```
 
 The CSS is the only side-effecting export — `sideEffects` is set to `["**/*.css"]` so the rest of the package tree-shakes.

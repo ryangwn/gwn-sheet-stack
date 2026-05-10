@@ -6,13 +6,13 @@ Stacked sheet, modal, panel, and push-screen UIs for React and Svelte. Framework
 
 ## Packages
 
-| Package                                                                         | Description                                                                                                             |
-| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| [`gwn-sheet-stack-core`](packages/core)                                         | Framework-agnostic primitives: FSM, gesture decisions, spring driver, presentation, event bus, router-adapter contract. |
-| [`gwn-sheet-stack-react`](packages/react)                                       | React bindings: `<Stage>`, hooks (`useStack`, `useLayerAnimation`, …), `MotionCoordinator`.                             |
-| [`gwn-sheet-stack-svelte`](packages/svelte)                                     | Svelte 5 bindings: `Stage`, `Sheet`, `Modal`, `Panel`, `PushScreen`, `LayerHost`.                                       |
-| [`gwn-sheet-stack-adapters-router-next`](packages/adapters-router-next)         | Next.js App Router adapter.                                                                                             |
-| [`gwn-sheet-stack-adapters-router-tanstack`](packages/adapters-router-tanstack) | TanStack Router adapter.                                                                                                |
+| Package                                                                          | Description                                                                                                             |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| [`@gwn-sheet-stack/core`](packages/core)                                         | Framework-agnostic primitives: FSM, gesture decisions, spring driver, presentation, event bus, router-adapter contract. |
+| [`@gwn-sheet-stack/react`](packages/react)                                       | React bindings: `<Stage>`, hooks (`useStack`, `useLayerAnimation`, …), `MotionCoordinator`.                             |
+| [`@gwn-sheet-stack/svelte`](packages/svelte)                                     | Svelte 5 bindings: `Stage`, `Sheet`, `Modal`, `Panel`, `PushScreen`, `LayerHost`.                                       |
+| [`@gwn-sheet-stack/adapters-router-next`](packages/adapters-router-next)         | Next.js App Router adapter.                                                                                             |
+| [`@gwn-sheet-stack/adapters-router-tanstack`](packages/adapters-router-tanstack) | TanStack Router adapter.                                                                                                |
 
 `core` is a **peer dependency** of every framework and adapter package — install both. This guarantees a single instance of the event bus, store, and FSM at runtime.
 
@@ -21,19 +21,19 @@ Stacked sheet, modal, panel, and push-screen UIs for React and Svelte. Framework
 React:
 
 ```bash
-bun add gwn-sheet-stack-core gwn-sheet-stack-react
+bun add @gwn-sheet-stack/core @gwn-sheet-stack/react
 ```
 
 Svelte:
 
 ```bash
-bun add gwn-sheet-stack-core gwn-sheet-stack-svelte
+bun add @gwn-sheet-stack/core @gwn-sheet-stack/svelte
 ```
 
 With a router adapter:
 
 ```bash
-bun add gwn-sheet-stack-core gwn-sheet-stack-react gwn-sheet-stack-adapters-router-next
+bun add @gwn-sheet-stack/core @gwn-sheet-stack/react @gwn-sheet-stack/adapters-router-next
 ```
 
 ## Concepts

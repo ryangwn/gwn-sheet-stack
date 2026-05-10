@@ -1,6 +1,6 @@
 'use client';
 
-import type { RouterAdapter, SerializedLayer } from 'gwn-sheet-stack-core';
+import type { RouterAdapter, SerializedLayer } from '@gwn-sheet-stack/core';
 
 const KEY = '__ss';
 
@@ -29,8 +29,8 @@ export interface NextAdapterOptions {
  * ```ts
  * // app/providers.tsx
  * 'use client';
- * import { createStackStore } from 'gwn-sheet-stack-core';
- * import { nextAppRouterAdapter } from 'gwn-sheet-stack-adapters-router-next';
+ * import { createStackStore } from '@gwn-sheet-stack/core';
+ * import { nextAppRouterAdapter } from '@gwn-sheet-stack/adapters-router-next';
  *
  * export const stackStore = createStackStore({
  *   mountWindow: 3,

@@ -9,7 +9,7 @@ A presentation layer stack for React — sheets, modals, panels, and push screen
 ## Quick start
 
 ```bash
-bun add gwn-sheet-stack-react gwn-sheet-stack-core
+bun add @gwn-sheet-stack/react @gwn-sheet-stack/core
 ```
 
 ### 1. Create a store and wrap your app
@@ -17,8 +17,8 @@ bun add gwn-sheet-stack-react gwn-sheet-stack-core
 ```tsx
 import { useMemo } from 'react';
 
-import { createStackStore } from 'gwn-sheet-stack-core';
-import { StackProvider, Stage } from 'gwn-sheet-stack-react';
+import { createStackStore } from '@gwn-sheet-stack/core';
+import { StackProvider, Stage } from '@gwn-sheet-stack/react';
 
 function App() {
   const store = useMemo(() => createStackStore({ mountWindow: 3 }), []);
@@ -35,7 +35,7 @@ function App() {
 ### 2. Push a layer from anywhere in the tree
 
 ```tsx
-import { useStack } from 'gwn-sheet-stack-react';
+import { useStack } from '@gwn-sheet-stack/react';
 
 function TriggerButton() {
   const { push } = useStack();
@@ -48,7 +48,7 @@ function TriggerButton() {
 Presentation components are rendered inside `Stage` when their `kind` is pushed. Use the compound components to structure content:
 
 ```tsx
-import { Modal } from 'gwn-sheet-stack-react';
+import { Modal } from '@gwn-sheet-stack/react';
 
 function MyModal() {
   return (
@@ -72,7 +72,7 @@ function MyModal() {
 ## Opt-in styles
 
 ```ts
-import 'gwn-sheet-stack-react/styles';
+import '@gwn-sheet-stack/react/styles';
 ```
 
 Adds default backdrop dimming, host scaling, and `will-change` hints. Fully overridable via CSS.

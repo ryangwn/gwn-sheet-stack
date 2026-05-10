@@ -9,7 +9,7 @@ import React, {
   useState,
 } from 'react';
 
-import { computeBackdropOpacity } from 'gwn-sheet-stack-core';
+import { computeBackdropOpacity } from '@gwn-sheet-stack/core';
 
 import { useKeyboardAvoidance } from '../keyboard/useKeyboardAvoidance';
 import { useLayerId } from '../layer/LayerContext';

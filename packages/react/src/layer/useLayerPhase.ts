@@ -1,4 +1,4 @@
-import type { LayerPhase } from 'gwn-sheet-stack-core';
+import type { LayerPhase } from '@gwn-sheet-stack/core';
 
 import { useStackState } from '../stack/context';
 

@@ -5,8 +5,8 @@
 //
 // Usage:
 //   'use client';
-//   import { useSheetStackRouter } from 'gwn-sheet-stack-adapters-router-next';
-//   import { nextAppRouterAdapter } from 'gwn-sheet-stack-adapters-router-next';
+//   import { useSheetStackRouter } from '@gwn-sheet-stack/adapters-router-next';
+//   import { nextAppRouterAdapter } from '@gwn-sheet-stack/adapters-router-next';
 //
 //   const adapter = nextAppRouterAdapter();
 //   const stackStore = createStackStore({ mountWindow: 3, router: adapter });
@@ -17,8 +17,8 @@
 //   }
 import { useEffect } from 'react';
 
-import type { StackStore } from 'gwn-sheet-stack-core';
-import type { RouterAdapter, SerializedLayer } from 'gwn-sheet-stack-core';
+import type { StackStore } from '@gwn-sheet-stack/core';
+import type { RouterAdapter, SerializedLayer } from '@gwn-sheet-stack/core';
 
 export function useSheetStackRouter(store: StackStore, adapter: RouterAdapter): void {
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 
-import { type AnimationSink, type AnimationValues, LayerAnimation } from 'gwn-sheet-stack-core';
+import { type AnimationSink, type AnimationValues, LayerAnimation } from '@gwn-sheet-stack/core';
 
 import { useLayerId } from '../layer/LayerContext';
 import { useStack } from '../stack/context';

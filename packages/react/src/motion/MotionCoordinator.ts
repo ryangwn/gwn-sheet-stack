@@ -1,4 +1,4 @@
-import type { AnimationValues } from 'gwn-sheet-stack-core';
+import type { AnimationValues } from '@gwn-sheet-stack/core';
 
 interface LayerEls {
   surface: HTMLElement;

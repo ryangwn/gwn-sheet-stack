@@ -1,4 +1,4 @@
-import type { RouterAdapter, SerializedLayer } from 'gwn-sheet-stack-core';
+import type { RouterAdapter, SerializedLayer } from '@gwn-sheet-stack/core';
 
 const KEY = '__ss';
 
@@ -41,8 +41,8 @@ export interface TanstackAdapterOptions {
  *
  * Usage:
  * ```ts
- * import { createStackStore } from 'gwn-sheet-stack-core';
- * import { tanstackRouterAdapter } from 'gwn-sheet-stack-adapters-router-tanstack';
+ * import { createStackStore } from '@gwn-sheet-stack/core';
+ * import { tanstackRouterAdapter } from '@gwn-sheet-stack/adapters-router-tanstack';
  * import { router } from './router';
  *
  * export const stackStore = createStackStore({

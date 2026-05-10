@@ -121,8 +121,8 @@ async function main() {
     errs.push(...runValidator(pkg, 'publint', ['.']));
     const attwArgs = ['--pack', '.', '--profile', 'esm-only'];
     const ignoreRules: string[] = [];
-    if (pkg.name === 'gwn-sheet-stack-react') ignoreRules.push('no-resolution');
-    if (pkg.name === 'gwn-sheet-stack-svelte') ignoreRules.push('internal-resolution-error');
+    if (pkg.name === '@gwn-sheet-stack/react') ignoreRules.push('no-resolution');
+    if (pkg.name === '@gwn-sheet-stack/svelte') ignoreRules.push('internal-resolution-error');
     if (ignoreRules.length) attwArgs.push('--ignore-rules', ignoreRules.join(','));
     errs.push(...runValidator(pkg, '@arethetypeswrong/cli', attwArgs));
     if (errs.length) {
