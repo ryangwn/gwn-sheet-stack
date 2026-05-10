@@ -18,7 +18,8 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
       id-token: write
     env:
       NPM_CONFIG_PROVENANCE: 'true'
@@ -40,7 +41,10 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Bump public package versions
+      - name: Consume changesets (CHANGELOG.md + version bumps)
+        run: bunx changeset version
+
+      - name: Override versions to match branch name
         run: |
           version="${{ steps.ver.outputs.version }}"
           for pkg in packages/*/package.json; do
@@ -58,5 +62,46 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish
+      - name: Publish to npm
         run: bunx changeset publish
+
+      - name: Commit changelog + version bumps to release branch
+        run: |
+          version="${{ steps.ver.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(release): v$version [skip ci]"
+            git push origin HEAD
+          else
+            echo "Nothing to commit."
+          fi
+
+      - name: Tag release
+        run: |
+          version="${{ steps.ver.outputs.version }}"
+          git tag -a "v$version" -m "Release v$version"
+          git push origin "v$version"
+
+      - name: Open sync PR to master
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${{ steps.ver.outputs.version }}"
+          gh pr create \
+            --base master \
+            --head "${GITHUB_REF_NAME}" \
+            --title "chore(release): v$version" \
+            --body "Sync CHANGELOG.md and version bumps from \`${GITHUB_REF_NAME}\`." \
+            2>/dev/null || echo "PR already exists or nothing to sync."
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${{ steps.ver.outputs.version }}"
+          gh release create "v$version" \
+            --title "v$version" \
+            --generate-notes \
+            --target "${GITHUB_REF_NAME}"
