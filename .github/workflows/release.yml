@@ -27,7 +27,29 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Extract version from branch
+        id: ver
+        run: |
+          ref="${GITHUB_REF_NAME}"
+          version="${ref#release/v}"
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Branch '$ref' does not match release/vX.Y.Z[-prerelease]"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - uses: ./.github/actions/setup
+
+      - name: Bump public package versions
+        run: |
+          version="${{ steps.ver.outputs.version }}"
+          for pkg in packages/*/package.json; do
+            private=$(jq -r '.private // false' "$pkg")
+            [ "$private" = "true" ] && continue
+            tmp=$(mktemp)
+            jq --arg v "$version" '.version = $v' "$pkg" > "$tmp" && mv "$tmp" "$pkg"
+            echo "→ $(jq -r .name "$pkg") @ $version"
+          done
 
       - uses: ./.github/actions/build
 
@@ -38,5 +60,3 @@ jobs:
 
       - name: Publish
         run: bunx changeset publish
-        env:
-          NPM_CONFIG_PROVENANCE: 'true'
