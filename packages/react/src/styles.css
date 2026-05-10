@@ -1,4 +1,4 @@
-/* opt-in default styles — import 'gwn-sheet-stack-react/styles' */
+/* opt-in default styles — import '@gwn-sheet-stack/react/styles' */
 
 :root {
   /* Vaul / iOS drawer curve — shared across every surface for cohesion. */

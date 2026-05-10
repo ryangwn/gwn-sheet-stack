@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { createStackStore } from '@gwn-sheet-stack/core';
 import { act, render } from '@testing-library/react';
 import { describe, expect, test } from 'bun:test';
-import { createStackStore } from 'gwn-sheet-stack-core';
 
 import { LayerHost, StackProvider } from '../index';
 

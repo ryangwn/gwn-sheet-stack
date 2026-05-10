@@ -1,6 +1,6 @@
 {
-  "name": "gwn-sheet-stack-svelte",
-  "version": "0.0.0",
+  "name": "@gwn-sheet-stack/svelte",
+  "version": "0.0.1",
   "description": "Svelte 5 bindings for sheet-stack.",
   "keywords": [
     "sheet",
@@ -45,9 +45,9 @@
   },
   "peerDependencies": {
     "svelte": "^5",
-    "gwn-sheet-stack-core": "workspace:*"
+    "@gwn-sheet-stack/core": "workspace:*"
   },
   "devDependencies": {
-    "gwn-sheet-stack-core": "workspace:*"
+    "@gwn-sheet-stack/core": "workspace:*"
   }
 }

@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 
+import { createStackStore } from '@gwn-sheet-stack/core';
+import { Sheet, StackProvider, Stage, useStack } from '@gwn-sheet-stack/react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { createStackStore } from 'gwn-sheet-stack-core';
-import { Sheet, StackProvider, Stage, useStack } from 'gwn-sheet-stack-react';
 
 function Trigger({ kind, label }: { kind: string; label: string }) {
   const { push } = useStack();

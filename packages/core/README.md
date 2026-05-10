@@ -1,16 +1,16 @@
-# gwn-sheet-stack-core
+# @gwn-sheet-stack/core
 
 Framework-agnostic primitives for [sheet-stack](https://github.com/ryangwn/gwn-sheet-stack): the FSM, gesture decisions, spring driver, presentation rules, event bus, and router-adapter contract.
 
-You probably want to install one of the framework bindings instead — `gwn-sheet-stack-react` or `gwn-sheet-stack-svelte`. This package is what they share.
+You probably want to install one of the framework bindings instead — `@gwn-sheet-stack/react` or `@gwn-sheet-stack/svelte`. This package is what they share.
 
 ## Install
 
 ```bash
-bun add gwn-sheet-stack-core
+bun add @gwn-sheet-stack/core
 ```
 
-`gwn-sheet-stack-core` must be present as a single instance at runtime. It is declared as a `peerDependency` of every framework and adapter package; install it once.
+`@gwn-sheet-stack/core` must be present as a single instance at runtime. It is declared as a `peerDependency` of every framework and adapter package; install it once.
 
 ## What lives here
 

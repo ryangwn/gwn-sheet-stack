@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { type PresentationKind, inertForLayer, renderModeFor } from 'gwn-sheet-stack-core';
+import { type PresentationKind, inertForLayer, renderModeFor } from '@gwn-sheet-stack/core';
 
 import { LayerContext } from '../layer/LayerContext';
 import { LayerHost } from '../layer/LayerHost.tsx';

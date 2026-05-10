@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { renderModeFor, inertForLayer } from 'gwn-sheet-stack-core';
+  import { renderModeFor, inertForLayer } from '@gwn-sheet-stack/core';
   import { getStack } from './lib/getStack';
   import { portal } from './lib/portal';
   import LayerHost from './LayerHost.svelte';

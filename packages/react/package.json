@@ -1,6 +1,6 @@
 {
-  "name": "gwn-sheet-stack-react",
-  "version": "0.0.0",
+  "name": "@gwn-sheet-stack/react",
+  "version": "0.0.1",
   "description": "React bindings for sheet-stack.",
   "keywords": [
     "sheet",
@@ -43,19 +43,19 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean --external react --external react-dom --external gwn-sheet-stack-core && cp src/styles.css dist/styles.css",
+    "build": "tsup src/index.ts --format esm --dts --clean --external react --external react-dom --external @gwn-sheet-stack/core && cp src/styles.css dist/styles.css",
     "typecheck": "tsc --noEmit",
     "test": "bun test --preload ./src/setup.ts"
   },
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18",
-    "gwn-sheet-stack-core": "workspace:*"
+    "@gwn-sheet-stack/core": "workspace:*"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.9.0",
     "@testing-library/react": "^16",
-    "gwn-sheet-stack-core": "workspace:*",
+    "@gwn-sheet-stack/core": "workspace:*",
     "happy-dom": "^20.9.0",
     "react": "^18",
     "react-dom": "^18"

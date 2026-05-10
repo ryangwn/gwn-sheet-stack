@@ -1,20 +1,20 @@
-# gwn-sheet-stack-svelte
+# @gwn-sheet-stack/svelte
 
 Svelte 5 bindings for [sheet-stack](https://github.com/ryangwn/gwn-sheet-stack). Built on runes.
 
 ## Install
 
 ```bash
-bun add gwn-sheet-stack-core gwn-sheet-stack-svelte
+bun add @gwn-sheet-stack/core @gwn-sheet-stack/svelte
 ```
 
-`gwn-sheet-stack-core` and `svelte ^5` are peer dependencies.
+`@gwn-sheet-stack/core` and `svelte ^5` are peer dependencies.
 
 ## Quick start
 
 ```svelte
 <script lang="ts">
-  import { StackProvider, Stage, defineRegistry } from 'gwn-sheet-stack-svelte';
+  import { StackProvider, Stage, defineRegistry } from '@gwn-sheet-stack/svelte';
   import CartSheet from './CartSheet.svelte';
   import ConfirmModal from './ConfirmModal.svelte';
 
@@ -33,7 +33,7 @@ bun add gwn-sheet-stack-core gwn-sheet-stack-svelte
 ```svelte
 <!-- CartSheet.svelte -->
 <script lang="ts">
-  import { Sheet } from 'gwn-sheet-stack-svelte';
+  import { Sheet } from '@gwn-sheet-stack/svelte';
 </script>
 
 <Sheet detents={[0.5, 1]}>

@@ -1,7 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 
-import type { Meta, StoryObj } from '@storybook/react';
-import { createStackStore, googleMapsDetents } from 'gwn-sheet-stack-core';
+import { createStackStore, googleMapsDetents } from '@gwn-sheet-stack/core';
 import {
   Sheet,
   StackProvider,
@@ -9,7 +8,8 @@ import {
   useLifecycle,
   useSheetGesture,
   useStack,
-} from 'gwn-sheet-stack-react';
+} from '@gwn-sheet-stack/react';
+import type { Meta, StoryObj } from '@storybook/react';
 
 function Trigger({ kind, label = 'Open sheet' }: { kind: string; label?: string }) {
   const { push } = useStack();
@@ -216,7 +216,7 @@ function GoogleMapsPresetContent() {
         }}
       >
         <p>
-          Uses the <code>googleMapsDetents</code> preset from <code>gwn-sheet-stack-core</code>.
+          Uses the <code>googleMapsDetents</code> preset from <code>@gwn-sheet-stack/core</code>.
         </p>
         <p>Detents: {googleMapsDetents.map((d) => `${d.id} (${d.size})`).join(', ')}.</p>
         <p>Drag down to the collapsed detent, up to expanded.</p>

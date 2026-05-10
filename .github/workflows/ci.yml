@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - main
+      - master
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -31,6 +31,7 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
+      - run: bun run build
       - run: bun run typecheck
 
   test:
@@ -42,6 +43,7 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
+      - run: bun run build
       - run: bun test
 
   verify-dist:

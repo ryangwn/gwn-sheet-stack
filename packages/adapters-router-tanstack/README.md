@@ -1,22 +1,22 @@
-# gwn-sheet-stack-adapters-router-tanstack
+# @gwn-sheet-stack/adapters-router-tanstack
 
 [TanStack Router](https://tanstack.com/router) adapter for [sheet-stack](https://github.com/ryangwn/gwn-sheet-stack).
 
 ## Install
 
 ```bash
-bun add gwn-sheet-stack-core gwn-sheet-stack-adapters-router-tanstack
+bun add @gwn-sheet-stack/core @gwn-sheet-stack/adapters-router-tanstack
 ```
 
-Plus your framework binding (`gwn-sheet-stack-react`) and TanStack Router itself.
+Plus your framework binding (`@gwn-sheet-stack/react`) and TanStack Router itself.
 
-Peer deps: `@tanstack/react-router >=1`, `gwn-sheet-stack-core`.
+Peer deps: `@tanstack/react-router >=1`, `@gwn-sheet-stack/core`.
 
 ## Use
 
 ```tsx
-import { tanstackRouterAdapter } from 'gwn-sheet-stack-adapters-router-tanstack';
-import { StackProvider, Stage } from 'gwn-sheet-stack-react';
+import { tanstackRouterAdapter } from '@gwn-sheet-stack/adapters-router-tanstack';
+import { StackProvider, Stage } from '@gwn-sheet-stack/react';
 
 import { router } from './router';
 

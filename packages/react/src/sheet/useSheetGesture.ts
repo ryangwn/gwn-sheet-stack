@@ -5,7 +5,7 @@ import {
   chooseSnapTarget,
   computeBackdropOpacity,
   rubberBand,
-} from 'gwn-sheet-stack-core';
+} from '@gwn-sheet-stack/core';
 
 import { useLayerId } from '../layer/LayerContext';
 import { useStack } from '../stack/context';

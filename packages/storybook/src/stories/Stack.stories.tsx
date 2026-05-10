@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 
-import type { Meta, StoryObj } from '@storybook/react';
-import { createStackStore } from 'gwn-sheet-stack-core';
+import { createStackStore } from '@gwn-sheet-stack/core';
 import {
   Modal,
   Panel,
@@ -11,7 +10,8 @@ import {
   Stage,
   useStack,
   useStackState,
-} from 'gwn-sheet-stack-react';
+} from '@gwn-sheet-stack/react';
+import type { Meta, StoryObj } from '@storybook/react';
 
 const btn: React.CSSProperties = {
   padding: '10px 18px',
