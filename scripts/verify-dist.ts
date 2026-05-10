@@ -118,7 +118,7 @@ async function main() {
     const errs: string[] = [];
     errs.push(...checkExistence(pkg));
     errs.push(...checkTarball(pkg));
-    errs.push(...runValidator(pkg, 'publint', ['.']));
+    errs.push(...runValidator(pkg, 'publint', ['--pack', 'bun', '.']));
     const attwArgs = ['--pack', '.', '--profile', 'esm-only'];
     const ignoreRules: string[] = [];
     if (pkg.name === '@gwn-sheet-stack/react') ignoreRules.push('no-resolution');
