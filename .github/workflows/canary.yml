@@ -13,9 +13,29 @@ jobs:
   verify:
     uses: ./.github/workflows/_verify.yml
 
+  detect:
+    name: Detect pending changesets
+    runs-on: ubuntu-latest
+    outputs:
+      pending: ${{ steps.check.outputs.pending }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: check
+        run: |
+          shopt -s nullglob
+          files=(.changeset/*.md)
+          pending=0
+          for f in "${files[@]}"; do
+            [ "$(basename "$f")" = "README.md" ] && continue
+            pending=1
+            break
+          done
+          echo "pending=$pending" >> "$GITHUB_OUTPUT"
+
   publish:
     name: Publish canary
-    needs: verify
+    needs: [verify, detect]
+    if: needs.detect.outputs.pending == '1'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -27,42 +47,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check for pending changesets
-        id: check
-        run: |
-          shopt -s nullglob
-          files=(.changeset/*.md)
-          pending=0
-          for f in "${files[@]}"; do
-            base="$(basename "$f")"
-            if [ "$base" = "README.md" ]; then continue; fi
-            pending=1
-            break
-          done
-          echo "pending=$pending" >> "$GITHUB_OUTPUT"
-
-      - name: Skip (no pending changesets)
-        if: steps.check.outputs.pending == '0'
-        run: echo "No pending changesets — skipping canary publish."
-
       - uses: ./.github/actions/setup
-        if: steps.check.outputs.pending == '1'
 
       - uses: ./.github/actions/build
-        if: steps.check.outputs.pending == '1'
 
       - name: Configure npm auth
-        if: steps.check.outputs.pending == '1'
         run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Snapshot version
-        if: steps.check.outputs.pending == '1'
         run: bunx changeset version --snapshot canary
 
       - name: Publish canary
-        if: steps.check.outputs.pending == '1'
         run: bunx changeset publish --tag canary --no-git-tag
-        env:
-          NPM_CONFIG_PROVENANCE: 'true'
