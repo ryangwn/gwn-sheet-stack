@@ -54,7 +54,7 @@ jobs:
 
       - name: Configure npm auth
         if: steps.check.outputs.pending == '1'
-        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > "$HOME/.npmrc"
+        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -69,5 +69,3 @@ jobs:
       - name: Publish canary
         if: steps.check.outputs.pending == '1'
         run: bun scripts/publish.ts --tag canary --no-git-checks
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
