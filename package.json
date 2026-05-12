@@ -15,7 +15,9 @@
     "test": "bun test",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "bun run build && bun run verify:dist && changeset publish",
+    "ci:version": "changeset version && bun install --lockfile-only",
+    "ci:publish": "bun run build && bun run verify:dist && bun scripts/publish.ts",
+    "release": "bun run build && bun run verify:dist && bun scripts/publish.ts",
     "storybook": "bun run --cwd packages/storybook dev",
     "storybook:build": "bun run --cwd packages/storybook build",
     "postinstall": "lefthook install"
@@ -30,9 +32,12 @@
     ]
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.17.0",
+    "@changesets/changelog-github": "^0.7.0",
     "@changesets/cli": "^2.31.0",
     "@commitlint/cli": "^20.5.3",
     "@commitlint/config-conventional": "^20.5.3",
+    "@sveltejs/package": "^2",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/bun": "latest",
     "@types/react": "^18",
@@ -43,12 +48,10 @@
     "eslint": "^10.3.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "@sveltejs/package": "^2",
     "lefthook": "^2.1.6",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.3",
     "publint": "^0.3.0",
-    "@arethetypeswrong/cli": "^0.17.0",
     "tsup": "^8"
   },
   "peerDependencies": {

@@ -5,6 +5,9 @@ skills-lock.json
 /docs
 /.scratch
 
+# Auth
+.npmrc
+
 # Build
 node_modules
 dist

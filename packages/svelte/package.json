@@ -1,6 +1,6 @@
 {
   "name": "@gwn-sheet-stack/svelte",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "Svelte 5 bindings for sheet-stack.",
   "keywords": [
     "sheet",
