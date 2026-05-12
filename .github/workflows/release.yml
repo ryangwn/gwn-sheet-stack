@@ -16,6 +16,7 @@ jobs:
   publish:
     name: Publish release
     needs: verify
+    if: github.repository == 'ryangwn/gwn-sheet-stack'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -23,7 +24,7 @@ jobs:
     env:
       NPM_CONFIG_PROVENANCE: 'true'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -36,7 +37,5 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish
-        run: bunx changeset publish
-        env:
-          NPM_CONFIG_PROVENANCE: 'true'
+      - name: Publish to npm
+        run: bun scripts/publish.ts

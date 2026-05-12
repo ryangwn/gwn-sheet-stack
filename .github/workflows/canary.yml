@@ -16,6 +16,7 @@ jobs:
   publish:
     name: Publish canary
     needs: verify
+    if: github.repository == 'ryangwn/gwn-sheet-stack'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -23,7 +24,7 @@ jobs:
     env:
       NPM_CONFIG_PROVENANCE: 'true'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -61,8 +62,10 @@ jobs:
         if: steps.check.outputs.pending == '1'
         run: bunx changeset version --snapshot canary
 
+      - name: Update lockfile
+        if: steps.check.outputs.pending == '1'
+        run: bun install --lockfile-only
+
       - name: Publish canary
         if: steps.check.outputs.pending == '1'
-        run: bunx changeset publish --tag canary --no-git-tag
-        env:
-          NPM_CONFIG_PROVENANCE: 'true'
+        run: bun scripts/publish.ts --tag canary --no-git-checks
