@@ -4,7 +4,6 @@
 
 ### Patch Changes
 
-- Release v0.0.4
-
-- Updated dependencies []:
+- Refactor: rename to scoped `@gwn-sheet-stack/*` packages
+- Updated dependencies:
   - @gwn-sheet-stack/core@0.0.4
