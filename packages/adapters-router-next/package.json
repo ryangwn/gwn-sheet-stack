@@ -49,6 +49,11 @@
     "react": ">=18",
     "@gwn-sheet-stack/core": "workspace:*"
   },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@gwn-sheet-stack/core": "workspace:*"
   }
