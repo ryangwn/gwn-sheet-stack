@@ -1,6 +1,6 @@
 {
   "name": "@gwn-sheet-stack/core",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "Framework-agnostic core for sheet-stack: gesture, spring, FSM, presentation, and event primitives for stacked sheet/modal UIs.",
   "keywords": [
     "sheet",
