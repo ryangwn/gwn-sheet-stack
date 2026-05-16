@@ -173,11 +173,20 @@ describe('RouterAdapter wiring', () => {
     ]);
   });
 
-  test('adapter.pushHistory() called on push (new layer → new history entry)', () => {
+  test('adapter.pushHistory() called on ephemeral push (new history entry)', () => {
     const adapter = makeMockAdapter();
     const store = createStackStore({ mountWindow: 3, router: adapter });
-    store.push({ kind: 'a' });
+    store.push({ kind: 'a' }); // default flavor is ephemeral
     expect((adapter.pushHistory as ReturnType<typeof mock>).mock.calls.length).toBe(1);
+  });
+
+  test('adapter.pushHistory() NOT called on route-bound push (caller already navigated)', () => {
+    // Route-bound layers come from a route file that Next already navigated
+    // to via <Link>; pushing another history entry would duplicate the URL.
+    const adapter = makeMockAdapter();
+    const store = createStackStore({ mountWindow: 3, router: adapter });
+    store.push({ kind: 'a', flavor: 'route-bound' });
+    expect((adapter.pushHistory as ReturnType<typeof mock>).mock.calls.length).toBe(0);
   });
 
   test('onPopState with shorter stack pops layers until aligned', () => {

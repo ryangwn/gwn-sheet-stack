@@ -143,7 +143,15 @@ export function createStackStore(config: StackStoreConfig): StackStore {
         syncedNotify();
       } else {
         state = { stack: [...state.stack, layer] };
-        router?.pushHistory();
+        // Only ephemerals create a synthetic history entry. Route-bound
+        // layers come from `useLayerRoute` running inside a route file that
+        // Next already navigated to via <Link>; pushing another entry would
+        // duplicate the URL and break `layer.close() → history.back()`
+        // (especially under StrictMode's mount→cleanup→remount cycle in
+        // dev). See ADR 0002.
+        if (layer.flavor !== 'route-bound') {
+          router?.pushHistory();
+        }
         syncedNotify();
         // Background prev top whether it was active OR still presenting —
         // both phases accept BACKGROUND now.
