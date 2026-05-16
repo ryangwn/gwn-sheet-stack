@@ -1,6 +1,7 @@
 // Store
 export { createStackStore } from './store/store';
 export { LRUMountWindow } from './store/lru';
+export { hashLayerId, stableStringify, validateSerializableProps } from './store/layerId';
 export type {
   SheetRegistry,
   SnapshotProvider,

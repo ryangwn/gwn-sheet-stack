@@ -1,5 +1,6 @@
 import { EventBus as EventBusImpl } from '../event/eventBus';
 import { type LayerEvent, transitions } from './fsm';
+import { hashLayerId } from './layerId';
 import { LRUMountWindow } from './lru';
 import type { Layer, SnapshotProvider, StackStore, StackStoreConfig } from './types';
 
@@ -8,9 +9,6 @@ interface InternalLayer extends Layer {
   pendingResult?: unknown;
   hydrated?: boolean;
 }
-
-let nextId = 0;
-const makeId = () => `L${++nextId}`;
 
 export function createStackStore(config: StackStoreConfig): StackStore {
   const dev = config.dev ?? process.env.NODE_ENV !== 'production';
@@ -71,6 +69,16 @@ export function createStackStore(config: StackStoreConfig): StackStore {
       return () => listeners.delete(listener);
     },
     push<R = unknown>(req: Parameters<StackStore['push']>[0]): Promise<R> {
+      const id = hashLayerId(req.kind, req.props);
+      // Content-addressed dedup (ADR 0002): if the same (kind, props) is
+      // already in the stack, bring it to the top instead of duplicating.
+      // popTo() is a no-op when the target is already top, so this is the
+      // natural idempotency check for route re-mounts.
+      const existingIdx = state.stack.findIndex((l) => l.id === id);
+      if (existingIdx !== -1) {
+        result.popTo(id);
+        return Promise.resolve(undefined as R);
+      }
       if (state.stack.length >= maxDepth) {
         if (dev) console.warn(`[sheet-stack] maxDepth (${maxDepth}) exceeded — push ignored.`);
         return Promise.resolve(undefined as R);
@@ -81,7 +89,7 @@ export function createStackStore(config: StackStoreConfig): StackStore {
       });
       const prevTop = state.stack[state.stack.length - 1];
       const layer: InternalLayer = {
-        id: makeId(),
+        id,
         kind: req.kind,
         props: req.props,
         phase: 'mounting',
