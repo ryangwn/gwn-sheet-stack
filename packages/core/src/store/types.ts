@@ -58,12 +58,6 @@ export interface StackStoreConfig {
   router?: RouterAdapter;
 }
 
-export const googleMapsDetents: Array<{ id: string; size: number }> = [
-  { id: 'collapsed', size: 0.15 },
-  { id: 'anchor', size: 0.5 },
-  { id: 'expanded', size: 1.0 },
-];
-
 export interface StackStore {
   getState(): State;
   subscribe(listener: () => void): () => void;

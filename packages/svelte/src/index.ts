@@ -18,5 +18,3 @@ export {
   onLayerSnapshot,
   getLayerVisibility,
 } from './lib/lifecycle';
-
-export type { AnimationDescriptor } from '@gwn-sheet-stack/core';

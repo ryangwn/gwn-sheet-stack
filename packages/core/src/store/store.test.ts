@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test';
 
-import { LRUMountWindow, createStackStore, googleMapsDetents, renderModeFor } from '../index';
+import { LRUMountWindow, createStackStore, renderModeFor } from '../index';
 
 describe('renderModeFor', () => {
   test('topmost layer (indexFromTop=0) is always visible', () => {
@@ -538,7 +538,7 @@ describe('createStackStore', () => {
   });
 });
 
-describe('maxDepth + googleMapsDetents (#13)', () => {
+describe('maxDepth (#13)', () => {
   test('push() no-ops when stack.length >= maxDepth', () => {
     const store = createStackStore({ mountWindow: 5, maxDepth: 2 });
     store.push({ kind: 'a' });
@@ -596,18 +596,6 @@ describe('maxDepth + googleMapsDetents (#13)', () => {
     store.dispatch(stack[1]!.id, { type: 'DISMISSED' });
     expect(store.getState().stack).toHaveLength(1);
     expect(store.getState().stack[0]!.phase).toBe('active');
-  });
-
-  test('googleMapsDetents has collapsed/anchor/expanded ids in ascending size order', () => {
-    expect(googleMapsDetents).toHaveLength(3);
-    const ids = googleMapsDetents.map((d) => d.id);
-    expect(ids).toContain('collapsed');
-    expect(ids).toContain('anchor');
-    expect(ids).toContain('expanded');
-    // sizes must be ascending
-    const sizes = googleMapsDetents.map((d) => d.size);
-    expect(sizes[0]!).toBeLessThan(sizes[1]!);
-    expect(sizes[1]!).toBeLessThan(sizes[2]!);
   });
 });
 
