@@ -1,13 +1,13 @@
 {
   "name": "@gwn-sheet-stack/react",
-  "version": "0.0.4",
-  "description": "React bindings for sheet-stack.",
+  "version": "0.1.0",
+  "description": "Headless React bindings for sheet-stack — stack/layer FSM + motion coordinator, bring your own surface.",
   "keywords": [
     "sheet",
-    "modal",
     "react",
     "stack",
-    "gesture"
+    "gesture",
+    "headless"
   ],
   "license": "MIT",
   "homepage": "https://github.com/ryangwn/gwn-sheet-stack#readme",
@@ -20,9 +20,7 @@
     "url": "https://github.com/ryangwn/gwn-sheet-stack/issues"
   },
   "type": "module",
-  "sideEffects": [
-    "**/*.css"
-  ],
+  "sideEffects": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -30,9 +28,7 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    },
-    "./styles": "./dist/styles.css",
-    "./styles.css": "./dist/styles.css"
+    }
   },
   "files": [
     "dist",
@@ -43,7 +39,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean --external react --external react-dom --external @gwn-sheet-stack/core && cp src/styles.css dist/styles.css",
+    "build": "tsup src/index.ts --format esm --dts --clean --external react --external react-dom --external @gwn-sheet-stack/core",
     "typecheck": "tsc --noEmit",
     "test": "bun test --preload ./src/setup.ts"
   },

@@ -1,13 +1,13 @@
 {
   "name": "@gwn-sheet-stack/svelte",
-  "version": "0.0.4",
-  "description": "Svelte 5 bindings for sheet-stack.",
+  "version": "0.1.0",
+  "description": "Headless Svelte 5 bindings for sheet-stack — stack/layer FSM + motion coordinator, bring your own surface.",
   "keywords": [
     "sheet",
-    "modal",
     "svelte",
     "stack",
-    "gesture"
+    "gesture",
+    "headless"
   ],
   "license": "MIT",
   "homepage": "https://github.com/ryangwn/gwn-sheet-stack#readme",
