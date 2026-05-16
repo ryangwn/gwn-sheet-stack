@@ -124,7 +124,7 @@ async function main() {
     if (pkg.name === '@gwn-sheet-stack/react') ignoreRules.push('no-resolution');
     if (pkg.name === '@gwn-sheet-stack/svelte') ignoreRules.push('internal-resolution-error');
     if (ignoreRules.length) attwArgs.push('--ignore-rules', ignoreRules.join(','));
-    errs.push(...runValidator(pkg, '@arethetypeswrong/cli', attwArgs));
+    errs.push(...runValidator(pkg, 'attw', attwArgs));
     if (errs.length) {
       totalErrors += errs.length;
       for (const e of errs) console.error(`  ✗ ${pkg.name}: ${e}`);
