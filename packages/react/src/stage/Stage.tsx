@@ -13,9 +13,10 @@ import { HiddenPolyfill } from './HiddenPolyfill.tsx';
 interface StageProps {
   registry: Record<string, React.ComponentType<Record<string, unknown>>>;
   mountWindow?: number;
+  container?: HTMLElement | null;
 }
 
-export function Stage({ registry, mountWindow = 3 }: StageProps) {
+export function Stage({ registry, mountWindow = 3, container }: StageProps) {
   const state = useStackState();
   const topLayer = state.stack[state.stack.length - 1];
   const topPresentation: PresentationKind = topLayer?.presentation ?? 'sheet';
@@ -85,6 +86,6 @@ export function Stage({ registry, mountWindow = 3 }: StageProps) {
         </MotionCoordinatorProvider>
       )}
     </div>,
-    document.body,
+    container ?? document.body,
   );
 }
