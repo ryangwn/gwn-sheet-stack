@@ -28,7 +28,18 @@ function makeMockAdapter(initial: SerializedLayer[] = []): RouterAdapter & {
 }
 
 describe('RouterAdapter wiring', () => {
-  test('adapter.write() called after user DISMISS resolves', () => {
+  test('adapter.write() fires once on push (shape-diff cadence)', () => {
+    const adapter = makeMockAdapter();
+    const store = createStackStore({ mountWindow: 3, router: adapter });
+    store.push({ kind: 'a' });
+    // Only the push changes shape — mounting → presenting → active doesn't.
+    const id = store.getState().stack[0]!.id;
+    store.dispatch(id, { type: 'MOUNTED' });
+    store.dispatch(id, { type: 'PRESENTED' });
+    expect(adapter.written).toHaveLength(1);
+  });
+
+  test('adapter.write() fires again on user DISMISS (shape changes)', () => {
     const adapter = makeMockAdapter();
     const store = createStackStore({ mountWindow: 3, router: adapter });
     store.push({ kind: 'a' });
@@ -37,32 +48,46 @@ describe('RouterAdapter wiring', () => {
     store.dispatch(id, { type: 'PRESENTED' });
     store.dispatch(id, { type: 'DISMISS', source: 'user' });
     store.dispatch(id, { type: 'DISMISSED' });
-    expect(adapter.written.length).toBeGreaterThanOrEqual(1);
+    // 1 for push, 1 for dismiss splice.
+    expect(adapter.written).toHaveLength(2);
   });
 
-  test('adapter.write() NOT called for source:router dismiss', () => {
+  test('adapter.write() does NOT echo back on router-driven dismiss', () => {
     const adapter = makeMockAdapter();
     const store = createStackStore({ mountWindow: 3, router: adapter });
     store.push({ kind: 'a' });
+    const initialWrites = adapter.written.length;
     const id = store.getState().stack[0]!.id;
     store.dispatch(id, { type: 'MOUNTED' });
     store.dispatch(id, { type: 'PRESENTED' });
     store.dispatch(id, { type: 'DISMISS', source: 'router' });
     store.dispatch(id, { type: 'DISMISSED' });
-    expect(adapter.written).toHaveLength(0);
+    // Router source means history is already authoritative; no echo write.
+    expect(adapter.written.length).toBe(initialWrites);
   });
 
-  test('adapter.write() NOT called for source:replaced dismiss', () => {
+  test('replace push coalesces splice + add into a single write', () => {
     const adapter = makeMockAdapter();
     const store = createStackStore({ mountWindow: 3, router: adapter });
     store.push({ kind: 'a' });
     const id = store.getState().stack[0]!.id;
     store.dispatch(id, { type: 'MOUNTED' });
     store.dispatch(id, { type: 'PRESENTED' });
+    const before = adapter.written.length;
     store.push({ kind: 'b', replace: true });
-    // 'a' dismissed with source:replaced → no write
-    // 'b' push may write via pushHistory, not write()
-    expect(adapter.written).toHaveLength(0);
+    expect(adapter.written.length - before).toBe(1);
+  });
+
+  test('write payload is the full stack as {kind, props}', () => {
+    const adapter = makeMockAdapter();
+    const store = createStackStore({ mountWindow: 3, router: adapter });
+    store.push({ kind: 'article', props: { id: 'a1' } });
+    store.push({ kind: 'article', props: { id: 'a2' } });
+    const lastWrite = adapter.written[adapter.written.length - 1]!;
+    expect(lastWrite).toEqual([
+      { kind: 'article', props: { id: 'a1' } },
+      { kind: 'article', props: { id: 'a2' } },
+    ]);
   });
 
   test('adapter.pushHistory() called on push (new layer → new history entry)', () => {

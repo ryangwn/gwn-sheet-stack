@@ -38,7 +38,7 @@ export interface PushRequest<K extends AnyKind = AnyKind> {
 
 export interface SerializedLayer {
   kind: string;
-  encoded?: string;
+  props?: unknown;
 }
 
 export interface RouterAdapter {

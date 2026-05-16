@@ -2,6 +2,12 @@ import type { RouterAdapter, SerializedLayer } from '@gwn-sheet-stack/core';
 
 const KEY = '__ss';
 
+// NOTE (ADR 0002 follow-up): the canonical history-based adapters now store
+// the below-top slice in `history.state.ss`, not the URL. TanStack Router
+// doesn't expose history.state writes directly, so this adapter still
+// round-trips through a search param for now. A route-table redesign is
+// scheduled in issue #6.
+
 function encode(stack: SerializedLayer[]): string {
   return JSON.stringify(stack);
 }

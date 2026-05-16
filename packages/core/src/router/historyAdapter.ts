@@ -1,41 +1,53 @@
+// Framework-agnostic RouterAdapter backed by the browser history API.
+//
+// Per ADR 0002: the URL no longer carries an `__ss=` query parameter. The
+// below-top slice of the stack lives in `history.state.ss` (survives refresh
+// in-tab, dies on share/copy-link). A consumer's route table — wired in a
+// future ticket — supplies the top layer's identity from the pathname.
 import type { RouterAdapter, SerializedLayer } from '../index';
 
-const KEY = '__ss';
+const STATE_KEY = '__ss';
 
-function encode(stack: SerializedLayer[]): string {
-  return JSON.stringify(stack);
+interface SheetStackState {
+  [STATE_KEY]?: SerializedLayer[];
+  [key: string]: unknown;
 }
 
-function decode(s: string | null): SerializedLayer[] {
-  if (!s) return [];
-  try {
-    return JSON.parse(s) as SerializedLayer[];
-  } catch {
-    return [];
-  }
+function readSliceFromHistory(): SerializedLayer[] {
+  if (typeof window === 'undefined') return [];
+  const s = (window.history.state as SheetStackState | null)?.[STATE_KEY];
+  return Array.isArray(s) ? (s as SerializedLayer[]) : [];
+}
+
+function stripTop(stack: SerializedLayer[]): SerializedLayer[] {
+  return stack.length === 0 ? [] : stack.slice(0, -1);
 }
 
 export function historyAdapter(): RouterAdapter {
   return {
     read() {
-      return decode(new URLSearchParams(location.search).get(KEY));
+      return readSliceFromHistory();
     },
     write(stack) {
-      const url = new URL(location.href);
-      if (stack.length) {
-        url.searchParams.set(KEY, encode(stack));
-      } else {
-        url.searchParams.delete(KEY);
-      }
-      history.replaceState({ ...history.state, ss: stack }, '', url);
+      if (typeof window === 'undefined') return;
+      const url = new URL(window.location.href);
+      // Drop any legacy `?__ss=` payload from prior versions.
+      url.searchParams.delete(STATE_KEY);
+      const next: SheetStackState = {
+        ...(window.history.state as SheetStackState | null),
+        [STATE_KEY]: stripTop(stack),
+      };
+      window.history.replaceState(next, '', url.toString());
     },
     onPopState(cb) {
-      const handler = (e: PopStateEvent) => cb((e.state?.ss as SerializedLayer[]) ?? []);
-      addEventListener('popstate', handler);
-      return () => removeEventListener('popstate', handler);
+      if (typeof window === 'undefined') return () => {};
+      const handler = () => cb(readSliceFromHistory());
+      window.addEventListener('popstate', handler);
+      return () => window.removeEventListener('popstate', handler);
     },
     pushHistory() {
-      history.pushState({ ...history.state }, '');
+      if (typeof window === 'undefined') return;
+      window.history.pushState({ ...(window.history.state as object | null) }, '');
     },
   };
 }

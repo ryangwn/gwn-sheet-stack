@@ -59,8 +59,29 @@ export function createStackStore(config: StackStoreConfig): StackStore {
   const serializeForRouter = () =>
     state.stack.map((l) => ({
       kind: l.kind,
-      ...(l.props !== undefined && { encoded: JSON.stringify(l.props) }),
+      ...(l.props !== undefined && { props: l.props }),
     }));
+
+  // Shape-diff write cadence (ADR 0002): the router only sees stack shape
+  // changes, not FSM phase transitions. `syncRouter` is a no-op when the id
+  // sequence is unchanged from the last write — opening a layer fires
+  // `mounting → presenting → active` but only one router.write.
+  let lastIdSeq: readonly string[] = [];
+  let popstateInFlight = false;
+  const syncRouter = () => {
+    if (!router) return;
+    if (popstateInFlight) return;
+    const ids = state.stack.map((l) => l.id);
+    if (ids.length === lastIdSeq.length && ids.every((id, i) => id === lastIdSeq[i])) {
+      return;
+    }
+    lastIdSeq = ids;
+    router.write(serializeForRouter());
+  };
+  const syncedNotify = () => {
+    notify();
+    syncRouter();
+  };
 
   const result: StackStore = {
     getState: () => state as ReturnType<StackStore['getState']>,
@@ -101,7 +122,6 @@ export function createStackStore(config: StackStoreConfig): StackStore {
       if (req.reset) {
         const toEvict = [...state.stack];
         state = { stack: [...state.stack, layer] };
-        notify();
         for (let i = toEvict.length - 1; i >= 0; i--) {
           result.dispatch(toEvict[i]!.id, {
             type: 'DISMISS',
@@ -109,14 +129,15 @@ export function createStackStore(config: StackStoreConfig): StackStore {
             skipAnimation: true,
           });
         }
+        syncedNotify();
       } else if (req.replace && prevTop) {
         state = { stack: [...state.stack, layer] };
-        notify();
         result.dispatch(prevTop.id, { type: 'DISMISS', source: 'replaced', skipAnimation: true });
+        syncedNotify();
       } else {
         state = { stack: [...state.stack, layer] };
-        notify();
         router?.pushHistory();
+        syncedNotify();
         // Background prev top whether it was active OR still presenting —
         // both phases accept BACKGROUND now.
         if (prevTop && (prevTop.phase === 'active' || prevTop.phase === 'presenting')) {
@@ -177,6 +198,9 @@ export function createStackStore(config: StackStoreConfig): StackStore {
     },
     hydrate(layers) {
       state = { stack: layers.map((l) => ({ ...l, hydrated: true }) as InternalLayer) };
+      // Hydration comes from the router; bypass syncRouter to avoid echoing
+      // back. Seed lastIdSeq so the next genuine shape change is detected.
+      lastIdSeq = state.stack.map((l) => l.id);
       notify();
     },
     serialize() {
@@ -209,18 +233,17 @@ export function createStackStore(config: StackStoreConfig): StackStore {
         const dismissSource = (layer as InternalLayer & { pendingSource?: string }).pendingSource;
         const stack = state.stack.filter((_, i) => i !== idx);
         state = { stack };
-        notify();
         lru.forget(layerId);
         snapshotProviders.delete(layerId);
         layer.resolve?.(layer.pendingResult);
-        if (
-          router &&
-          dismissSource !== 'router' &&
-          dismissSource !== 'replaced' &&
-          dismissSource !== 'reset' &&
-          dismissSource !== 'popped-past'
-        ) {
-          router.write(serializeForRouter());
+        // Router-driven dismiss: history is already authoritative, don't echo
+        // a write back. Refresh the id-sequence snapshot so the next genuine
+        // shape change is detected.
+        if (dismissSource === 'router') {
+          lastIdSeq = state.stack.map((l) => l.id);
+          notify();
+        } else {
+          syncedNotify();
         }
         if (state.stack.length === 0) events.clearAll();
         // Promote the exposed underlay back to 'active' so it accepts input
@@ -300,10 +323,20 @@ export function createStackStore(config: StackStoreConfig): StackStore {
 
   // wire onPopState after store is constructed (needs self-reference for dispatch)
   router?.onPopState((incoming) => {
-    const diff = state.stack.length - incoming.length;
-    for (let i = 0; i < diff; i++) {
-      const top = state.stack[state.stack.length - 1];
-      if (top) result.dispatch(top.id, { type: 'DISMISS', source: 'router', skipAnimation: true });
+    popstateInFlight = true;
+    try {
+      const diff = state.stack.length - incoming.length;
+      for (let i = 0; i < diff; i++) {
+        const top = state.stack[state.stack.length - 1];
+        if (top) {
+          result.dispatch(top.id, { type: 'DISMISS', source: 'router', skipAnimation: true });
+        }
+      }
+    } finally {
+      popstateInFlight = false;
+      // Re-sync lastIdSeq with what's now in the stack — popstate already
+      // reflects URL truth, so the next genuine shape change is what matters.
+      lastIdSeq = state.stack.map((l) => l.id);
     }
   });
 
