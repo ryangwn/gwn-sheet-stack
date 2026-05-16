@@ -15,26 +15,29 @@
 //     useSheetStackRouter(stackStore, adapter);
 //     return <StackProvider value={stackStore}>{children}</StackProvider>;
 //   }
-import { useEffect } from 'react';
+import { useState } from 'react';
 
 import { hashLayerId } from '@gwn-sheet-stack/core';
 import type { StackStore } from '@gwn-sheet-stack/core';
 import type { RouterAdapter, SerializedLayer } from '@gwn-sheet-stack/core';
 
 export function useSheetStackRouter(store: StackStore, adapter: RouterAdapter): void {
-  useEffect(() => {
-    // Hydrate from history.state.ss on first client mount. The store handles
-    // its own writes via shape-diff (ADR 0002); no subscription needed here.
+  // Synchronous hydration (ADR 0002): run during the root provider's first
+  // render — before child route components fire their `useLayerRoute`
+  // effects. React's render→effect order guarantees children's effects
+  // observe the hydrated below-top slice and only push the missing top.
+  useState(() => {
+    if (store.getState().stack.length > 0) return null;
     const initial: SerializedLayer[] = adapter.read();
-    if (initial.length > 0) {
-      store.hydrate(
-        initial.map((l) => ({
-          id: hashLayerId(l.kind, l.props),
-          kind: l.kind,
-          phase: 'active' as const,
-          props: l.props,
-        })),
-      );
-    }
-  }, [store, adapter]);
+    if (initial.length === 0) return null;
+    store.hydrate(
+      initial.map((l) => ({
+        id: hashLayerId(l.kind, l.props),
+        kind: l.kind,
+        phase: 'active' as const,
+        props: l.props,
+      })),
+    );
+    return null;
+  });
 }

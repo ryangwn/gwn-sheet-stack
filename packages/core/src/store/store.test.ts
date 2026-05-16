@@ -299,6 +299,15 @@ describe('createStackStore', () => {
     expect(store.getState().stack).toHaveLength(0);
   });
 
+  test('dispatch DISMISS moves mounting → dismissing (race: unmount before MOUNTED)', () => {
+    const store = createStackStore({ mountWindow: 3 });
+    store.push({ kind: 'a' });
+    const id = store.getState().stack[0]!.id;
+    expect(store.getState().stack[0]!.phase).toBe('mounting');
+    store.dispatch(id, { type: 'DISMISS', source: 'programmatic' });
+    expect(store.getState().stack[0]!.phase).toBe('dismissing');
+  });
+
   test('dispatch DISMISS moves background → dismissing', () => {
     const store = createStackStore({ mountWindow: 3 });
     store.push({ kind: 'a' });

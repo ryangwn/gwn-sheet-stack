@@ -8,6 +8,7 @@ export { Stage } from './stage/Stage.tsx';
 export { LayerHost } from './layer/LayerHost.tsx';
 export { useLayer } from './layer/useLayer';
 export { useLayerPhase } from './layer/useLayerPhase';
+export { useLayerRoute } from './layer/useLayerRoute';
 export { useLifecycle } from './layer/useLifecycle';
 export type { LifecycleCallbacks } from './layer/useLifecycle';
 export { useStackEvent } from './layer/useStackEvent';

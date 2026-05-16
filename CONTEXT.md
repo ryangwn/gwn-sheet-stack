@@ -32,7 +32,7 @@ The library ships **no surface components and no animation engine**. `Modal`, `P
 
 ## Hooks (React)
 
-- **useLayerRoute** — call inside a Next route file (typically the intercepted `@modal/(.)…/page.tsx`) to declare "this route IS a route-bound Layer of `kind` with these `props`." Pushes idempotently on mount, pops on unmount. The canonical entry point for route-bound Layers.
+- **useLayerRoute** — call inside a Next route file (typically the intercepted `@modal/(.)…/page.tsx`) to declare "this route IS a route-bound Layer of `kind` with these `props`." Pushes idempotently on mount, pops on unmount via skip-animation dismiss (animated exit is the surface adapter's responsibility). The canonical entry point for route-bound Layers.
 - **useLayerId** — `string` from `LayerContext`. Required inside any Layer component.
 - **useLayerPhase** — current FSM phase for a layerId. The bridge between the FSM and the surface library's `open` prop.
 - **useLayer** — current Layer record (props, id, `close()`, `snapTo()`).
