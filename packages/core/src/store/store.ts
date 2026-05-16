@@ -56,10 +56,16 @@ export function createStackStore(config: StackStoreConfig): StackStore {
     }
   };
 
+  // ADR 0002 / issue #5: emit the full stack, including the ephemeral top
+  // when present. The adapter's `stripTop` trims the route-bound top (which
+  // is implied by the URL) but keeps ephemerals (which are not). Flavor is
+  // carried so the popstate reconciler and hydration filter know each
+  // entry's lifetime semantic.
   const serializeForRouter = () =>
     state.stack.map((l) => ({
       kind: l.kind,
       ...(l.props !== undefined && { props: l.props }),
+      flavor: l.flavor ?? 'ephemeral',
     }));
 
   // Shape-diff write cadence (ADR 0002): the router only sees stack shape

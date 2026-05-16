@@ -110,6 +110,57 @@ describe('RouterAdapter wiring', () => {
     expect(store.getState().stack.find((l) => l.id === aId)).toBeDefined();
   });
 
+  test('popstate closes ephemeral on top of route-bound; route-bound survives', () => {
+    const adapter = makeMockAdapter();
+    const store = createStackStore({ mountWindow: 3, router: adapter });
+    store.push({ kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' });
+    const aId = store.getState().stack[0]!.id;
+    store.dispatch(aId, { type: 'MOUNTED' });
+    store.dispatch(aId, { type: 'PRESENTED' });
+    store.push({ kind: 'confirm-delete', flavor: 'ephemeral' });
+    expect(store.getState().stack).toHaveLength(2);
+
+    // Browser back: previous entry's state.ss was the route-bound stack
+    // (route-bound top stripped → []).
+    adapter.triggerPopState([]);
+    const stack = store.getState().stack;
+    expect(stack).toHaveLength(1);
+    expect(stack[0]!.id).toBe(aId);
+  });
+
+  test('popstate pops two stacked ephemerals in LIFO order across two backs', () => {
+    const adapter = makeMockAdapter();
+    const store = createStackStore({ mountWindow: 3, router: adapter });
+    store.push({ kind: 'd1', flavor: 'ephemeral' });
+    const d1Id = store.getState().stack[0]!.id;
+    store.dispatch(d1Id, { type: 'MOUNTED' });
+    store.dispatch(d1Id, { type: 'PRESENTED' });
+    store.push({ kind: 'd2', flavor: 'ephemeral' });
+    const d2Id = store.getState().stack[1]!.id;
+    store.dispatch(d2Id, { type: 'MOUNTED' });
+    store.dispatch(d2Id, { type: 'PRESENTED' });
+
+    // First back: state.ss at d1's entry was [d1] (ephemeral top retained).
+    adapter.triggerPopState([{ kind: 'd1', flavor: 'ephemeral' }]);
+    expect(store.getState().stack).toHaveLength(1);
+    expect(store.getState().stack[0]!.id).toBe(d1Id);
+
+    // Second back: state.ss at the pre-d1 entry was [].
+    adapter.triggerPopState([]);
+    expect(store.getState().stack).toHaveLength(0);
+  });
+
+  test('hydration filters ephemerals out of state.ss', () => {
+    const adapter = makeMockAdapter([
+      { kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' },
+      { kind: 'confirm-delete', flavor: 'ephemeral' },
+    ]);
+    // Mimics what useSheetStackRouter does: read, filter, hydrate.
+    const restorable = adapter.read().filter((l) => (l.flavor ?? 'route-bound') === 'route-bound');
+    expect(restorable).toHaveLength(1);
+    expect(restorable[0]!.kind).toBe('article');
+  });
+
   test('write payload is the full stack as {kind, props}', () => {
     const adapter = makeMockAdapter();
     const store = createStackStore({ mountWindow: 3, router: adapter });
@@ -117,8 +168,8 @@ describe('RouterAdapter wiring', () => {
     store.push({ kind: 'article', props: { id: 'a2' } });
     const lastWrite = adapter.written[adapter.written.length - 1]!;
     expect(lastWrite).toEqual([
-      { kind: 'article', props: { id: 'a1' } },
-      { kind: 'article', props: { id: 'a2' } },
+      { kind: 'article', props: { id: 'a1' }, flavor: 'ephemeral' },
+      { kind: 'article', props: { id: 'a2' }, flavor: 'ephemeral' },
     ]);
   });
 

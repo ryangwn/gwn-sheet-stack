@@ -30,14 +30,16 @@ export function useSheetStackRouter(store: StackStore, adapter: RouterAdapter): 
     if (store.getState().stack.length > 0) return null;
     const initial: SerializedLayer[] = adapter.read();
     if (initial.length === 0) return null;
+    // Ephemerals don't survive refresh (ADR 0002 / issue #5). Pre-0.2 data
+    // had no flavor field; treat as route-bound for back-compat.
+    const restorable = initial.filter((l) => (l.flavor ?? 'route-bound') === 'route-bound');
+    if (restorable.length === 0) return null;
     store.hydrate(
-      initial.map((l) => ({
+      restorable.map((l) => ({
         id: hashLayerId(l.kind, l.props),
         kind: l.kind,
         phase: 'active' as const,
         props: l.props,
-        // history.state.ss only ever carries route-bound layers; ephemerals
-        // are not persisted.
         flavor: 'route-bound' as const,
       })),
     );

@@ -16,7 +16,11 @@ function readSliceFromHistory(): SerializedLayer[] {
 }
 
 function stripTop(stack: SerializedLayer[]): SerializedLayer[] {
-  return stack.length === 0 ? [] : stack.slice(0, -1);
+  if (stack.length === 0) return [];
+  const top = stack[stack.length - 1]!;
+  // Route-bound tops are implied by the URL; ephemeral tops are not, so they
+  // need to stay in state.ss so back-traversal can pop them in LIFO order.
+  return top.flavor === 'ephemeral' ? stack : stack.slice(0, -1);
 }
 
 /**

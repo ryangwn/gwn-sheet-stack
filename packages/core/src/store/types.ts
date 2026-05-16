@@ -55,6 +55,8 @@ export interface PushRequest<K extends AnyKind = AnyKind> {
 export interface SerializedLayer {
   kind: string;
   props?: unknown;
+  /** Defaults to 'route-bound' on read for back-compat with pre-0.2 data. */
+  flavor?: LayerFlavor;
 }
 
 export interface RouterAdapter {

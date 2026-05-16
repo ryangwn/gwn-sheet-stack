@@ -66,4 +66,34 @@ describe('historyAdapter — new schema (ADR 0002)', () => {
     adapter.write([]);
     expect((window.history.state as { [KEY]?: unknown })[KEY]).toEqual([]);
   });
+
+  test('ephemeral top is kept in state.ss (URL does not imply it)', () => {
+    const adapter = historyAdapter();
+    adapter.write([
+      { kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' },
+      { kind: 'confirm-delete', flavor: 'ephemeral' },
+    ]);
+    expect((window.history.state as { [KEY]?: unknown })[KEY]).toEqual([
+      { kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' },
+      { kind: 'confirm-delete', flavor: 'ephemeral' },
+    ]);
+  });
+
+  test('route-bound top is stripped (URL implies it)', () => {
+    const adapter = historyAdapter();
+    adapter.write([
+      { kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' },
+      { kind: 'article', props: { id: 'a2' }, flavor: 'route-bound' },
+    ]);
+    expect((window.history.state as { [KEY]?: unknown })[KEY]).toEqual([
+      { kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' },
+    ]);
+  });
+
+  test('ephemeral push leaves the URL unchanged', () => {
+    const adapter = historyAdapter();
+    const before = window.location.href;
+    adapter.write([{ kind: 'confirm-delete', flavor: 'ephemeral' }]);
+    expect(window.location.href).toBe(before);
+  });
 });
