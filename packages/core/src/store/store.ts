@@ -114,6 +114,7 @@ export function createStackStore(config: StackStoreConfig): StackStore {
         kind: req.kind,
         props: req.props,
         phase: 'mounting',
+        flavor: req.flavor ?? 'ephemeral',
         resolve,
         ...(req.presentation !== undefined && { presentation: req.presentation }),
         ...(req.detentId !== undefined && { detentId: req.detentId }),
@@ -322,20 +323,23 @@ export function createStackStore(config: StackStoreConfig): StackStore {
   };
 
   // wire onPopState after store is constructed (needs self-reference for dispatch)
+  // Under ADR 0002 the store's popstate handler is responsible only for
+  // ephemeral layers. Route-bound tops are managed by the route component
+  // they live in — `useLayerRoute` cleanup runs when Next unmounts the
+  // intercepted modal, splicing the layer from the stack. Doing the same
+  // dismiss here would race with that cleanup.
   router?.onPopState((incoming) => {
     popstateInFlight = true;
     try {
-      const diff = state.stack.length - incoming.length;
-      for (let i = 0; i < diff; i++) {
+      const target = incoming.length;
+      while (state.stack.length > target) {
         const top = state.stack[state.stack.length - 1];
-        if (top) {
-          result.dispatch(top.id, { type: 'DISMISS', source: 'router', skipAnimation: true });
-        }
+        if (!top) break;
+        if (top.flavor === 'route-bound') break;
+        result.dispatch(top.id, { type: 'DISMISS', source: 'router', skipAnimation: true });
       }
     } finally {
       popstateInFlight = false;
-      // Re-sync lastIdSeq with what's now in the stack — popstate already
-      // reflects URL truth, so the next genuine shape change is what matters.
       lastIdSeq = state.stack.map((l) => l.id);
     }
   });

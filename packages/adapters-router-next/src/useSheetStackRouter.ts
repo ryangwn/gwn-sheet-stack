@@ -36,6 +36,9 @@ export function useSheetStackRouter(store: StackStore, adapter: RouterAdapter): 
         kind: l.kind,
         phase: 'active' as const,
         props: l.props,
+        // history.state.ss only ever carries route-bound layers; ephemerals
+        // are not persisted.
+        flavor: 'route-bound' as const,
       })),
     );
     return null;

@@ -29,7 +29,7 @@ export function useLayerRoute<P = unknown>(kind: string, props?: P): void {
   useEffect(() => {
     const existing = store.getState().stack.find((l) => l.id === id);
     if (!existing) {
-      store.push({ kind, props });
+      store.push({ kind, props, flavor: 'route-bound' });
     }
     return () => {
       const target = store.getState().stack.find((l) => l.id === id);

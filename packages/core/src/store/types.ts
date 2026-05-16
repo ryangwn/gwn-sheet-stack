@@ -13,6 +13,18 @@ export interface SnapshotProvider {
   triggers: Array<'background' | 'evicted'>;
 }
 
+/**
+ * 'route-bound' Layers are declared via `useLayerRoute` inside a route file
+ * and participate in browser history. `layer.close()` routes through
+ * `history.back()` so the URL stays authoritative (ADR 0002).
+ *
+ * 'ephemeral' Layers (the default for raw `stack.push()`) do not change the
+ * URL. `layer.close()` dispatches DISMISS directly until issue #5 lands
+ * synthetic history entries, at which point ephemeral close also routes
+ * through `history.back()`.
+ */
+export type LayerFlavor = 'route-bound' | 'ephemeral';
+
 export interface Layer<K extends string = string, P = unknown> {
   id: string;
   kind: K;
@@ -21,6 +33,8 @@ export interface Layer<K extends string = string, P = unknown> {
   presentation?: PresentationKind;
   snapshot?: Record<string, unknown>;
   detentId?: string;
+  /** Defaults to 'ephemeral'. `useLayerRoute` sets this to 'route-bound'. */
+  flavor?: LayerFlavor;
 }
 
 export interface State {
@@ -34,6 +48,8 @@ export interface PushRequest<K extends AnyKind = AnyKind> {
   reset?: boolean;
   presentation?: PresentationKind;
   detentId?: string;
+  /** Default 'ephemeral'. `useLayerRoute` passes 'route-bound'. */
+  flavor?: LayerFlavor;
 }
 
 export interface SerializedLayer {

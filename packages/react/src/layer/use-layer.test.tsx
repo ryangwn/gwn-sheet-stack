@@ -158,6 +158,56 @@ describe('useLayer', () => {
     expect(result.current.snapshot).toBeUndefined();
   });
 
+  test('close on a route-bound layer calls history.back, not dispatch', () => {
+    const store = createStackStore({ mountWindow: 3 });
+    store.push({ kind: 'demo', flavor: 'route-bound' });
+    const layerId = store.getState().stack[0]!.id;
+    store.dispatch(layerId, { type: 'MOUNTED' });
+    store.dispatch(layerId, { type: 'PRESENTED' });
+    const { result } = renderHook(() => useLayer(), { wrapper: makeWrapper(store, layerId) });
+
+    const backSpy = spyOn(window.history, 'back').mockImplementation(() => {});
+    const dispatchSpy = spyOn(store, 'dispatch');
+
+    act(() => {
+      result.current.close();
+    });
+
+    expect(backSpy).toHaveBeenCalledTimes(1);
+    // No DISMISS dispatch for route-bound — the popstate path drives it.
+    expect(
+      dispatchSpy.mock.calls.find((call) => {
+        const event = call[1] as { type: string };
+        return event?.type === 'DISMISS';
+      }),
+    ).toBeUndefined();
+
+    backSpy.mockRestore();
+    dispatchSpy.mockRestore();
+  });
+
+  test('close is a no-op while the layer is already dismissing (spam guard)', () => {
+    const store = createStackStore({ mountWindow: 3 });
+    store.push({ kind: 'demo', flavor: 'route-bound' });
+    const layerId = store.getState().stack[0]!.id;
+    store.dispatch(layerId, { type: 'MOUNTED' });
+    store.dispatch(layerId, { type: 'PRESENTED' });
+    store.dispatch(layerId, { type: 'DISMISS', source: 'user' });
+    expect(store.getState().stack.find((l) => l.id === layerId)!.phase).toBe('dismissing');
+
+    const { result } = renderHook(() => useLayer(), { wrapper: makeWrapper(store, layerId) });
+    const backSpy = spyOn(window.history, 'back').mockImplementation(() => {});
+
+    act(() => {
+      result.current.close();
+      result.current.close();
+      result.current.close();
+    });
+
+    expect(backSpy).not.toHaveBeenCalled();
+    backSpy.mockRestore();
+  });
+
   test('snapshot returns layer snapshot when it exists', () => {
     const store = createStackStore({ mountWindow: 3 });
     store.push({ kind: 'demo' });

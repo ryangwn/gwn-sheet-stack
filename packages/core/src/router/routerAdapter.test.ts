@@ -78,6 +78,38 @@ describe('RouterAdapter wiring', () => {
     expect(adapter.written.length - before).toBe(1);
   });
 
+  test('popstate dismisses an ephemeral top', () => {
+    const adapter = makeMockAdapter();
+    const store = createStackStore({ mountWindow: 3, router: adapter });
+    store.push({ kind: 'a' });
+    const aId = store.getState().stack[0]!.id;
+    store.dispatch(aId, { type: 'MOUNTED' });
+    store.dispatch(aId, { type: 'PRESENTED' });
+    store.push({ kind: 'b' });
+    const bId = store.getState().stack[1]!.id;
+    store.dispatch(bId, { type: 'MOUNTED' });
+    store.dispatch(bId, { type: 'PRESENTED' });
+
+    // Back to /a — below-top is []
+    adapter.triggerPopState([]);
+    expect(store.getState().stack.find((l) => l.id === bId)).toBeUndefined();
+  });
+
+  test('popstate leaves a route-bound top alone (useLayerRoute cleanup handles it)', () => {
+    const adapter = makeMockAdapter();
+    const store = createStackStore({ mountWindow: 3, router: adapter });
+    store.push({ kind: 'a', flavor: 'route-bound' });
+    const aId = store.getState().stack[0]!.id;
+    store.dispatch(aId, { type: 'MOUNTED' });
+    store.dispatch(aId, { type: 'PRESENTED' });
+
+    // popstate fires with no below-top — but the top is route-bound, so the
+    // store leaves it alone. The route component would unmount in a real Next
+    // setup and `useLayerRoute` cleanup would splice it.
+    adapter.triggerPopState([]);
+    expect(store.getState().stack.find((l) => l.id === aId)).toBeDefined();
+  });
+
   test('write payload is the full stack as {kind, props}', () => {
     const adapter = makeMockAdapter();
     const store = createStackStore({ mountWindow: 3, router: adapter });
