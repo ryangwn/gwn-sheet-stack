@@ -97,3 +97,79 @@ describe('historyAdapter — new schema (ADR 0002)', () => {
     expect(window.location.href).toBe(before);
   });
 });
+
+describe('historyAdapter — route table', () => {
+  beforeEach(resetLocation);
+  afterEach(resetLocation);
+
+  const articleRoute = {
+    pattern: '/articles/:id',
+    kind: 'article' as const,
+    extract: (params: Record<string, string>) => ({ id: params.id }),
+    build: (props: unknown) => `/articles/${(props as { id: string }).id}`,
+  };
+
+  test('write sets URL via build() for the top route-bound layer', () => {
+    const adapter = historyAdapter({ routes: [articleRoute] });
+    adapter.write([{ kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' }]);
+    expect(window.location.pathname).toBe('/articles/a1');
+  });
+
+  test('read reconstructs the top layer from a matching pathname', () => {
+    window.history.replaceState(null, '', '/articles/a1');
+    const adapter = historyAdapter({ routes: [articleRoute] });
+    expect(adapter.read()).toEqual([
+      { kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' },
+    ]);
+  });
+
+  test('read returns just state.ss when pathname does not match any route', () => {
+    window.history.replaceState(null, '', '/');
+    const adapter = historyAdapter({ routes: [articleRoute] });
+    expect(adapter.read()).toEqual([]);
+  });
+
+  test('round-trip: write then read produces an equivalent stack', () => {
+    const adapter = historyAdapter({ routes: [articleRoute] });
+    adapter.write([
+      { kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' },
+      { kind: 'article', props: { id: 'a2' }, flavor: 'route-bound' },
+    ]);
+    expect(adapter.read()).toEqual([
+      { kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' },
+      { kind: 'article', props: { id: 'a2' }, flavor: 'route-bound' },
+    ]);
+  });
+
+  test('pattern matches with a trailing slash', () => {
+    window.history.replaceState(null, '', '/articles/a1/');
+    const adapter = historyAdapter({ routes: [articleRoute] });
+    expect(adapter.read()).toEqual([
+      { kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' },
+    ]);
+  });
+
+  test('ephemeral top does not overwrite a route-bound URL', () => {
+    const adapter = historyAdapter({ routes: [articleRoute] });
+    // First write establishes the route-bound URL.
+    adapter.write([{ kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' }]);
+    expect(window.location.pathname).toBe('/articles/a1');
+    // Second write pushes an ephemeral on top — URL must stay put because the
+    // top is no longer URL-shaped.
+    adapter.write([
+      { kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' },
+      { kind: 'confirm-delete', flavor: 'ephemeral' },
+    ]);
+    expect(window.location.pathname).toBe('/articles/a1');
+    expect((window.history.state as { __ss?: unknown }).__ss).toEqual([
+      { kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' },
+      { kind: 'confirm-delete', flavor: 'ephemeral' },
+    ]);
+  });
+
+  test('write never sets __ss query param even with routes configured', () => {
+    const adapter = historyAdapter({ routes: [articleRoute] });
+    adapter.write([{ kind: 'article', props: { id: 'a1' }, flavor: 'route-bound' }]);
+    expect(new URL(window.location.href).searchParams.get(KEY)).toBeNull();
+  });
+});

@@ -6,6 +6,7 @@ export type {
   SheetRegistry,
   SnapshotProvider,
   Layer,
+  LayerFlavor,
   State,
   PushRequest,
   SerializedLayer,
@@ -32,3 +33,4 @@ export { EventBus } from './event/eventBus';
 
 // Router
 export { historyAdapter } from './router/historyAdapter';
+export type { HistoryAdapterOptions, RouteEntry } from './router/historyAdapter';
