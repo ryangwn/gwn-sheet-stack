@@ -1,6 +1,6 @@
 # @gwn-sheet-stack/react
 
-Headless React 18+ bindings for [sheet-stack](https://github.com/ryangwn/gwn-sheet-stack). Ships the stack/layer FSM + motion coordinator — bring your own surface (vaul, Radix Dialog, plain divs, etc.).
+Headless React 18+ bindings for [sheet-stack](https://github.com/ryangwn/gwn-sheet-stack). Ships the stack/layer FSM and portal lifecycle — bring your own surface (vaul, Radix Dialog, plain divs, etc.). Animation and gestures are the adapter's responsibility.
 
 ## Install
 
@@ -12,51 +12,52 @@ bun add @gwn-sheet-stack/core @gwn-sheet-stack/react
 
 ## Quick start
 
+A vaul-backed adapter — the third-party library owns the animation, the FSM owns the lifecycle.
+
 ```tsx
-import { useMemo } from 'react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { createStackStore } from '@gwn-sheet-stack/core';
-import {
-  StackProvider,
-  Stage,
-  useLayer,
-  useLayerAnimation,
-  useLayerPhase,
-  useStack,
-} from '@gwn-sheet-stack/react';
+import { StackProvider, Stage, useLayer, useLayerPhase, useStack } from '@gwn-sheet-stack/react';
+import { Drawer } from 'vaul';
 
-// `duration` is in seconds (typical 0.2–0.5).
-const ENTER = { kind: 'modal', direction: 'in', spring: { duration: 0.42, bounce: 0.18 } } as const;
-const EXIT = { kind: 'modal', direction: 'out', spring: { duration: 0.22, bounce: 0 } } as const;
-
-function ConfirmModal() {
+function useVaulLayer() {
   const layer = useLayer();
   const phase = useLayerPhase(layer.id);
-  const surfaceRef = useRef<HTMLDivElement>(null);
-  const backdropRef = useRef<HTMLDivElement>(null);
-  const animation = useLayerAnimation({ surfaceRef, backdropRef });
+  const store = useStack();
 
+  // Vaul drives its own enter/exit animation. Settle the FSM the moment
+  // each phase begins; for `dismissing`, wait the library's exit duration.
   useEffect(() => {
-    if (phase === 'presenting') animation.run(ENTER);
-    else if (phase === 'dismissing') animation.run(EXIT);
-  }, [phase, animation]);
+    if (phase === 'presenting') store.dispatch(layer.id, { type: 'PRESENTED' });
+    if (phase === 'dismissing') {
+      const t = setTimeout(() => store.dispatch(layer.id, { type: 'DISMISSED' }), 500);
+      return () => clearTimeout(t);
+    }
+  }, [phase, store, layer.id]);
 
+  const open = phase !== 'mounting' && phase !== 'dismissing' && phase !== 'evicted';
+  return {
+    open,
+    onOpenChange: (o: boolean) => {
+      if (!o && phase !== 'dismissing') layer.close();
+    },
+  };
+}
+
+function ConfirmSheet() {
+  const vaul = useVaulLayer();
   return (
-    <>
-      <div
-        ref={backdropRef}
-        onClick={layer.close}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', opacity: 0 }}
-      />
-      <div ref={surfaceRef} role="dialog">
-        {/* your content */}
-      </div>
-    </>
+    <Drawer.Root {...vaul}>
+      <Drawer.Portal>
+        <Drawer.Overlay style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)' }} />
+        <Drawer.Content>{/* your content */}</Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
   );
 }
 
-const registry = { confirm: ConfirmModal };
+const registry = { confirm: ConfirmSheet };
 
 export function App() {
   const store = useMemo(() => createStackStore({ mountWindow: 3 }), []);
@@ -76,7 +77,7 @@ See [docs/integration.md](https://github.com/ryangwn/gwn-sheet-stack/blob/master
 ## Components
 
 - **`<StackProvider value={store}>`** — provides the `StackStore` via context.
-- **`<Stage registry={...}>`** — single host. Mounts every Layer, owns `[data-sheetstack-host]`. One per app.
+- **`<Stage registry={...} container={...?}>`** — single host. Mounts every Layer, owns `[data-sheetstack-host]`. Pass `container` to portal into a custom element (e.g. a framed mobile preview); defaults to `document.body`. One per app.
 - **`<LayerHost>`** — wrapper for one Layer; rendered by `<Stage>`.
 
 ## Hooks
@@ -84,15 +85,9 @@ See [docs/integration.md](https://github.com/ryangwn/gwn-sheet-stack/blob/master
 - **`useStack()`** — the `StackStore`.
 - **`useStackState()`** — reactive state.
 - **`useLayer()`** — current Layer record inside an adapter.
-- **`useLayerPhase(id)`** — current FSM phase.
-- **`useLayerAnimation({ surfaceRef, backdropRef? })`** — registers refs with the `MotionCoordinator` and returns a `LayerAnimation`. Call `animation.run(descriptor)` from a phase-watching effect when the library drives the spring. Skip it entirely when the third-party library (vaul, Radix) owns the animation — drive `open`/`onOpenChange` from `useLayerPhase` instead. See [docs/integration.md](https://github.com/ryangwn/gwn-sheet-stack/blob/master/docs/integration.md).
+- **`useLayerPhase(id)`** — current FSM phase. Drive your library's `open` / `onOpenChange` from this.
 - **`useLifecycle({ onWillAppear, onDidAppear, ... })`** — Layer lifecycle callbacks.
 - **`useStackEvent()`** — subscribe to stack events.
-- **`useKeyboardAvoidance()`**, **`usePreventScroll()`**, **`usePositionFixed()`** — body/viewport helpers.
-
-## Gesture
-
-- **`attachPanBase`** — axis-agnostic pointer recognizer. Use for swipe-back, swipe-down, etc.
 
 ## Router adapters
 

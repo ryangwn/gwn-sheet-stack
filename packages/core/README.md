@@ -1,6 +1,6 @@
 # @gwn-sheet-stack/core
 
-Framework-agnostic primitives for [sheet-stack](https://github.com/ryangwn/gwn-sheet-stack): the FSM, gesture decisions, spring driver, presentation rules, event bus, and router-adapter contract.
+Framework-agnostic primitives for [sheet-stack](https://github.com/ryangwn/gwn-sheet-stack): the stack store, FSM, snapshot/mount-window, presentation rules, event bus, and router-adapter contract. Animation and gesture handling are intentionally the adapter's responsibility.
 
 You probably want to install one of the framework bindings instead — `@gwn-sheet-stack/react` or `@gwn-sheet-stack/svelte`. This package is what they share.
 
@@ -16,10 +16,7 @@ bun add @gwn-sheet-stack/core
 
 - **StackStore** — `createStackStore`, `LRUMountWindow`, `Layer`, `State`, `RouterAdapter`. The vanilla-TS state container that runs the FSM, broadcasts changes, owns the mount window, and wires the router adapter.
 - **FSM** — `LayerPhase` (`mounting | presenting | active | background | dragging | snapping | dismissing | evicted`), `LayerEvent`, `renderModeFor`, `PresentationKind`.
-- **Gesture decisions** — `chooseSnapTarget` (sheets), `decidePushGesture` (push-screens), `rubberBand` (overscroll math), `GestureOutcome`.
-- **Spring** — `springParams`, `springAt`, `SPRING_DEFAULTS`, `SpringDriver`, `MotionValue`.
-- **Animation seam** — `LayerAnimation`, `AnimationDescriptor`, `AnimationValues`, `AnimationSink`.
-- **Presentation** — `resolvePresentation`, `inertForLayer`, `computeBackdropOpacity`.
+- **Presentation** — `inertForLayer`.
 - **Router** — `historyAdapter` reference implementation; concrete adapters live in `gwn-sheet-stack-adapters-router-*`.
 - **Event bus** — `EventBus`.
 

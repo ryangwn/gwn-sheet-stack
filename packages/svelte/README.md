@@ -1,6 +1,6 @@
 # @gwn-sheet-stack/svelte
 
-Headless Svelte 5 bindings for [sheet-stack](https://github.com/ryangwn/gwn-sheet-stack). Built on runes. Ships the stack/layer FSM + motion coordinator — bring your own surface.
+Headless Svelte 5 bindings for [sheet-stack](https://github.com/ryangwn/gwn-sheet-stack). Built on runes. Ships the stack/layer FSM and portal lifecycle — bring your own surface (vaul-svelte, plain divs, etc.). Animation and gestures are the adapter's responsibility.
 
 ## Install
 
