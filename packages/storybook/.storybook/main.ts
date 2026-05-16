@@ -27,14 +27,6 @@ const config: StorybookConfig = {
         : [];
     config.resolve.alias = [
       {
-        find: 'gwn-sheet-stack-react/styles.css',
-        replacement: path.resolve(__dirname, '../../react/src/styles.css'),
-      },
-      {
-        find: 'gwn-sheet-stack-react/styles',
-        replacement: path.resolve(__dirname, '../../react/src/styles.css'),
-      },
-      {
         find: 'gwn-sheet-stack-react',
         replacement: path.resolve(__dirname, '../../react/src/index.ts'),
       },

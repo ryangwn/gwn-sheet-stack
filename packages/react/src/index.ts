@@ -1,26 +1,34 @@
+// Stack
 export { StackProvider, useStack, useStackState } from './stack/context';
-export { LayerHost } from './layer/LayerHost.tsx';
+
+// Stage
 export { Stage } from './stage/Stage.tsx';
 export { HiddenPolyfill } from './stage/HiddenPolyfill.tsx';
+
+// Layer
+export { LayerHost } from './layer/LayerHost.tsx';
 export { useLayer } from './layer/useLayer';
+export { useLayerPhase } from './layer/useLayerPhase';
 export { useLifecycle } from './layer/useLifecycle';
 export type { LifecycleCallbacks } from './layer/useLifecycle';
-export { Sheet } from './sheet/Sheet.tsx';
-export type { DetentSpec } from './sheet/SheetContext';
-export { useSheetGesture } from './sheet/useSheetGesture';
-export { attachPan } from './sheet/attachPan';
 export { useStackEvent } from './layer/useStackEvent';
-export { useKeyboardAvoidance } from './keyboard/useKeyboardAvoidance';
-export { usePreventScroll } from './scroll/usePreventScroll';
-export { usePositionFixed } from './scroll/usePositionFixed';
-export { useScaleBackground } from './sheet/useScaleBackground';
-export { Panel } from './panel/Panel.tsx';
-export { Modal } from './modal/Modal.tsx';
-export { PushScreen } from './push-screen/PushScreen.tsx';
-export { useLayerPhase } from './layer/useLayerPhase';
+
+// Motion
 export { MotionCoordinator } from './motion/MotionCoordinator';
 export type { MotionEvent } from './motion/MotionCoordinator';
 export { MotionCoordinatorProvider, useMotionCoordinator } from './motion/context';
 export { useLayerAnimation } from './motion/useLayerAnimation';
+
+// Gesture
 export { attachPanBase } from './gesture/attachPanBase';
 export type { PanBaseOptions } from './gesture/attachPanBase';
+
+// Scroll
+export { usePreventScroll } from './scroll/usePreventScroll';
+export { usePositionFixed } from './scroll/usePositionFixed';
+
+// Keyboard
+export { useKeyboardAvoidance } from './keyboard/useKeyboardAvoidance';
+
+// Re-exports from core (convenience for adapter authors)
+export type { AnimationDescriptor } from '@gwn-sheet-stack/core';

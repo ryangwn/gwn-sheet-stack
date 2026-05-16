@@ -75,7 +75,11 @@ export function LayerHost({ layerId, inert = false, children }: LayerHostProps) 
 
   return (
     <LayerContext.Provider value={layerId}>
-      <div data-sheetstack-layer={layerId} {...(inert ? { inert: '' } : {})}>
+      <div
+        data-sheetstack-layer={layerId}
+        style={{ position: 'fixed', inset: 0, pointerEvents: 'none' }}
+        {...(inert ? { inert: '' } : {})}
+      >
         {children}
       </div>
     </LayerContext.Provider>
