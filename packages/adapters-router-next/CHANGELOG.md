@@ -1,5 +1,12 @@
 # @gwn-sheet-stack/adapters-router-next
 
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies:
+  - @gwn-sheet-stack/core@0.1.0
+
 ## 0.0.4
 
 ### Patch Changes

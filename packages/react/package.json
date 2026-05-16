@@ -1,6 +1,6 @@
 {
   "name": "@gwn-sheet-stack/react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Headless React bindings for sheet-stack — stack/layer FSM + motion coordinator, bring your own surface.",
   "keywords": [
     "sheet",
