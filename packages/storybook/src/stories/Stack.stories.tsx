@@ -1,17 +1,38 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { createStackStore } from '@gwn-sheet-stack/core';
-import {
-  Modal,
-  Panel,
-  PushScreen,
-  Sheet,
-  StackProvider,
-  Stage,
-  useStack,
-  useStackState,
-} from '@gwn-sheet-stack/react';
+import { StackProvider, Stage, useStack, useStackState } from '@gwn-sheet-stack/react';
+import * as Dialog from '@radix-ui/react-dialog';
 import type { Meta, StoryObj } from '@storybook/react';
+import { Drawer } from 'vaul';
+
+import {
+  ArticleListScreen,
+  MobileFrame,
+  PortalContainerContext,
+  articleFeedRegistry,
+} from './article-feed';
+import { useRadixDialog } from './useRadixDialog';
+import { useVaulLayer } from './useVaulLayer';
+
+const RADIX_DIALOG_STYLES = `
+  @keyframes radix-overlay-in { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes radix-overlay-out { from { opacity: 1 } to { opacity: 0 } }
+  @keyframes radix-content-in {
+    from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
+    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  }
+  @keyframes radix-content-out {
+    from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    to   { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
+  }
+  .radix-overlay[data-state='open']  { animation: radix-overlay-in  150ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .radix-overlay[data-state='closed']{ animation: radix-overlay-out 150ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .radix-content[data-state='open']  { animation: radix-content-in  200ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .radix-content[data-state='closed']{ animation: radix-content-out 200ms cubic-bezier(0.16, 1, 0.3, 1); }
+`;
+
+const EASE_OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
 
 const btn: React.CSSProperties = {
   padding: '10px 18px',
@@ -20,6 +41,7 @@ const btn: React.CSSProperties = {
   borderRadius: 8,
   border: '1px solid #ccc',
   background: '#fff',
+  transition: `transform 160ms ${EASE_OUT}`,
 };
 
 function StackBadge() {
@@ -49,17 +71,11 @@ function PushButtons() {
   const { push } = useStack();
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-      <button style={btn} onClick={() => push({ kind: 'modal' })}>
-        Push modal
+      <button style={btn} onClick={() => push({ kind: 'radix' })}>
+        Push Radix dialog
       </button>
-      <button style={btn} onClick={() => push({ kind: 'sheet' })}>
-        Push sheet
-      </button>
-      <button style={btn} onClick={() => push({ kind: 'panel' })}>
-        Push panel
-      </button>
-      <button style={btn} onClick={() => push({ kind: 'push' })}>
-        Push screen
+      <button style={btn} onClick={() => push({ kind: 'vaul' })}>
+        Push Vaul drawer
       </button>
     </div>
   );
@@ -79,96 +95,91 @@ function PopButton() {
   );
 }
 
-function ModalLayer() {
+function RadixDialogLayer() {
+  const radix = useRadixDialog();
   return (
-    <Modal size="md" dismissible>
-      <div style={{ padding: 24 }}>
-        <h2 style={{ marginTop: 0 }}>Modal layer</h2>
-        <p>Push another layer to grow the stack.</p>
-        <PushButtons />
-        <div style={{ marginTop: 12 }}>
-          <PopButton />
-        </div>
-      </div>
-    </Modal>
+    <Dialog.Root {...radix}>
+      <Dialog.Portal>
+        <Dialog.Overlay
+          className="radix-overlay"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(2px)',
+            WebkitBackdropFilter: 'blur(2px)',
+          }}
+        />
+        <Dialog.Content
+          className="radix-content"
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transformOrigin: 'center',
+            transform: 'translate(-50%, -50%)',
+            background: '#fff',
+            borderRadius: 12,
+            padding: 24,
+            minWidth: 360,
+            boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+          }}
+        >
+          <Dialog.Title style={{ marginTop: 0 }}>Radix dialog layer</Dialog.Title>
+          <p>Push another layer on top to grow the stack.</p>
+          <PushButtons />
+          <div style={{ marginTop: 12 }}>
+            <PopButton />
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
-function SheetLayer() {
-  return (
-    <Sheet.Container
-      detents={[
-        { id: 'mid', size: 0.5 },
-        { id: 'full', size: 0.92 },
-      ]}
-      initialDetent="mid"
-      side="bottom"
-    >
-      <Sheet.Backdrop />
-      <Sheet.Handle />
-      <Sheet.Header>
-        <h2 style={{ margin: 0, padding: '0 16px', fontSize: 17, fontWeight: 600 }}>Sheet layer</h2>
-      </Sheet.Header>
-      <Sheet.Content style={{ padding: 16 }}>
-        <p>Stack another layer or pop.</p>
-        <PushButtons />
-        <div style={{ marginTop: 12 }}>
-          <PopButton />
-        </div>
-      </Sheet.Content>
-    </Sheet.Container>
-  );
-}
+function VaulDrawerLayer() {
+  const vaul = useVaulLayer();
 
-function PanelLayer() {
   return (
-    <Panel side="right" width={360}>
-      <div style={{ padding: 24, height: '100%', boxSizing: 'border-box' }}>
-        <h2 style={{ marginTop: 0 }}>Panel layer</h2>
-        <p>Right-anchored drawer.</p>
-        <PushButtons />
-        <div style={{ marginTop: 12 }}>
-          <PopButton />
-        </div>
-      </div>
-    </Panel>
-  );
-}
-
-function PushScreenLayer() {
-  return (
-    <PushScreen edgeSwipeBack>
-      <div
-        style={{
-          padding: 32,
-          height: '100%',
-          background: '#fff',
-          boxSizing: 'border-box',
-          overflow: 'auto',
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>Push screen layer</h2>
-        <p>Full-screen push. Edge-swipe back enabled.</p>
-        <PushButtons />
-        <div style={{ marginTop: 12 }}>
-          <PopButton />
-        </div>
-      </div>
-    </PushScreen>
+    <Drawer.Root {...vaul}>
+      <Drawer.Portal>
+        <Drawer.Overlay style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)' }} />
+        <Drawer.Content
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            background: '#fff',
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+            padding: 24,
+            maxHeight: '85vh',
+          }}
+        >
+          <Drawer.Title style={{ marginTop: 0 }}>Vaul drawer layer</Drawer.Title>
+          <p>Swipe down or click the backdrop. Both flow through the FSM.</p>
+          <PushButtons />
+          <div style={{ marginTop: 12 }}>
+            <PopButton />
+          </div>
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
   );
 }
 
 const registry = {
-  modal: ModalLayer,
-  sheet: SheetLayer,
-  panel: PanelLayer,
-  push: PushScreenLayer,
+  radix: RadixDialogLayer,
+  vaul: VaulDrawerLayer,
+  ...articleFeedRegistry,
 };
 
 function Scene() {
   const store = useMemo(() => createStackStore({ mountWindow: 10, maxDepth: 10 }), []);
   return (
     <StackProvider value={store}>
+      <style>{RADIX_DIALOG_STYLES}</style>
       <div
         style={{
           display: 'flex',
@@ -180,9 +191,9 @@ function Scene() {
           background: '#f5f5f5',
         }}
       >
-        <h1 style={{ margin: 0, fontSize: 22 }}>Stack demo</h1>
+        <h1 style={{ margin: 0, fontSize: 22 }}>Stack demo — mixed third-party surfaces</h1>
         <p style={{ margin: 0, color: '#666' }}>
-          Push any presentation. Then push another from inside it. Pop to unwind.
+          Push a Radix dialog. Then push a Vaul drawer on top. Pop to unwind.
         </p>
         <PushButtons />
       </div>
@@ -192,7 +203,34 @@ function Scene() {
   );
 }
 
+function MobileArticleScene() {
+  const store = useMemo(() => createStackStore({ mountWindow: 10, maxDepth: 10 }), []);
+  const [frame, setFrame] = useState<HTMLDivElement | null>(null);
+  return (
+    <StackProvider value={store}>
+      <PortalContainerContext.Provider value={frame}>
+        <style>{RADIX_DIALOG_STYLES}</style>
+        <div
+          style={{
+            display: 'grid',
+            placeItems: 'center',
+            minHeight: '100vh',
+            background: '#e7e5e4',
+          }}
+        >
+          <MobileFrame frameRef={setFrame}>
+            <ArticleListScreen />
+          </MobileFrame>
+        </div>
+        <StackBadge />
+        <Stage registry={registry} mountWindow={10} container={frame} />
+      </PortalContainerContext.Provider>
+    </StackProvider>
+  );
+}
+
 const meta: Meta = { title: 'Stack' };
 export default meta;
 
 export const MultiLayer: StoryObj = { render: () => <Scene /> };
+export const MobileArticleFeed: StoryObj = { render: () => <MobileArticleScene /> };
