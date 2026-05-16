@@ -15,9 +15,20 @@ Use these terms exactly. If a concept here is missing, add it; don't invent syno
 - **FSM phase** — `'mounting' | 'presenting' | 'active' | 'background' | 'dragging' | 'snapping' | 'dismissing' | 'evicted'`. Transitions live in `core/store/fsm.ts`.
 - **RouterAdapter** — pluggable interface (`read | write | onPopState | pushHistory`) so the stack can be serialized to URL. Concrete adapters live in `packages/adapters-router-*`.
 
+## Headless positioning (since 0.1.0, 2026-05-16)
+
+The library ships **no surface components**. `Modal`, `Panel`, `PushScreen`, and `Sheet` were removed in 0.1.0. Consumers build **adapters** — thin wrappers around any third-party UI library (vaul, Radix Dialog, plain divs) — that integrate with the stack via the React/Svelte primitives.
+
+- **Adapter** — a registry component (mapped by `kind` in `Stage`'s `registry`) that wraps a surface and routes its lifecycle through the FSM. Two patterns:
+  - **Library-driven animation** — for plain `<div>` or custom surfaces. Use `useLayerAnimation` + a phase-watching effect to call `animation.run(enter|exit)`. The library writes inline `transform`/`opacity`; `LayerAnimation` dispatches `PRESENTED`/`DISMISSED` on settle.
+  - **Third-party-driven animation** — for vaul, Radix Dialog, etc. Skip `useLayerAnimation`. Derive `open` from `useLayerPhase`, dispatch `PRESENTED` immediately on `phase === 'presenting'` (bypassing the FSM's enter wait), and dispatch `DISMISSED` from a `setTimeout` that matches the library's exit duration. Route user-initiated close through `layer.close()`.
+- Both patterns must pin third-party `open` props off the FSM phase — the FSM owns mount/unmount.
+- See `docs/integration.md` and `docs/adr/0001-headless-core.md` for rationale.
+- Reference adapters live in `packages/storybook/src/stories/` (`useVaulLayer.ts`, `useRadixDialog.ts`, `Stack.stories.tsx`).
+
 ## Animation seam (added 2026-05-04)
 
-Concentrates spring lifecycle + per-kind tick math + FSM dispatch for the JS-driven primitives (Modal, Panel, PushScreen). Sheet stays on CSS transitions.
+Concentrates spring lifecycle + per-kind tick math + FSM dispatch for the JS-driven surfaces. Sheet-style detent animation lives in core and is wired up by adapters.
 
 - **LayerAnimation** (`packages/core/src/animation/LayerAnimation.ts`) — owns one Layer's enter/exit. Methods: `run(descriptor, opts?)`, `setLive(values)`, `cancel()`, `position`. Dispatches `PRESENTED` / `DISMISSED` to the StackStore on settle (unless `dispatch: false`). Uses live `position` for flicker-free handoff when a dismiss fires mid-animation.
 - **AnimationDescriptor** — closed enum `'modal' | 'panel' | 'push'` × `direction: 'in' | 'out'` plus a `SpringDescriptor`. Lives in `core/animation/types.ts`.
@@ -41,11 +52,11 @@ Single vocabulary for "what should happen on pointer release" across Sheet drag 
 
 - **useLayerId** — `string` from `LayerContext`. Required inside any Layer component.
 - **useLayerPhase** — current FSM phase for a layerId. Replaces the `state.stack.find(...)?.phase` boilerplate.
-- **useLayerAnimation** — wires a Layer's surface (+ optional backdrop) refs into the **MotionCoordinator** and constructs a **LayerAnimation**. Components publish via `animation.run(descriptor)` on phase change.
+- **useLayerAnimation** — wires a Layer's surface (+ optional backdrop) refs into the **MotionCoordinator** and constructs a **LayerAnimation**. Used by library-driven adapters; third-party-driven adapters skip it.
 - **useStack** / **useStackState** — access the StackStore + reactive state.
 
 ## Conventions
 
-- **CSS variable names** — every animated var is `--ss-*`. Writers go through `MotionCoordinator.writeLayer` or `MotionCoordinator.setHost`. Components do not write `--ss-*` directly (Sheet is the current exception, pending migration).
+- **CSS variable names** — every animated var is `--ss-*`. Writers go through `MotionCoordinator.writeLayer` or `MotionCoordinator.setHost`. Adapters do not write `--ss-*` directly.
 - **Data attributes** — `[data-sheetstack-host]`, `[data-sheetstack-layer]`, `[data-sheetstack-presentation]`, `[data-sheetstack-backdrop]`, `[data-sheetstack-side]`, `[data-sheetstack-phase]`. These are styling hooks, not state — derive them from the FSM, never from inline JS state.
-- **FSM dispatch from animations** — happens _only_ inside `LayerAnimation`. Components never call `store.dispatch({ type: 'PRESENTED' | 'DISMISSED' })` from animation completion callbacks. (User-driven `DISMISS` from clicks/escape is fine — that's intent, not animation timing.)
+- **FSM dispatch from animations** — happens inside `LayerAnimation` for library-driven adapters, and inside the adapter's own phase-watching effects for third-party-driven adapters (vaul/Radix). The rule: a Layer should never get stuck in `presenting` or `dismissing` because nothing dispatched the settle event. (User-driven `DISMISS` from clicks/escape is fine — that's intent, not animation timing.)

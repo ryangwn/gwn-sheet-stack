@@ -1,6 +1,6 @@
 # @gwn-sheet-stack/svelte
 
-Svelte 5 bindings for [sheet-stack](https://github.com/ryangwn/gwn-sheet-stack). Built on runes.
+Headless Svelte 5 bindings for [sheet-stack](https://github.com/ryangwn/gwn-sheet-stack). Built on runes. Ships the stack/layer FSM + motion coordinator — bring your own surface.
 
 ## Install
 
@@ -15,13 +15,9 @@ bun add @gwn-sheet-stack/core @gwn-sheet-stack/svelte
 ```svelte
 <script lang="ts">
   import { StackProvider, Stage, defineRegistry } from '@gwn-sheet-stack/svelte';
-  import CartSheet from './CartSheet.svelte';
-  import ConfirmModal from './ConfirmModal.svelte';
+  import ConfirmModal from './ConfirmModal.svelte'; // your adapter
 
-  const registry = defineRegistry({
-    cart: CartSheet,
-    confirmRemove: ConfirmModal,
-  });
+  const registry = defineRegistry({ confirm: ConfirmModal });
 </script>
 
 <StackProvider {registry}>
@@ -30,16 +26,7 @@ bun add @gwn-sheet-stack/core @gwn-sheet-stack/svelte
 </StackProvider>
 ```
 
-```svelte
-<!-- CartSheet.svelte -->
-<script lang="ts">
-  import { Sheet } from '@gwn-sheet-stack/svelte';
-</script>
-
-<Sheet detents={[0.5, 1]}>
-  <!-- sheet content -->
-</Sheet>
-```
+Build adapter `.svelte` components that wrap whichever UI library you like, attach the layer's surface ref via `getLayer()`, and call `getStack().dispatch(id, { type: 'DISMISS', source: 'user' })` on dismiss intents. See [docs/integration.md](https://github.com/ryangwn/gwn-sheet-stack/blob/master/docs/integration.md) for the contract (React-flavoured, but the seam is identical).
 
 One `<Stage>` per app, inside `<StackProvider>`.
 
@@ -48,7 +35,6 @@ One `<Stage>` per app, inside `<StackProvider>`.
 - **`StackProvider`** — provides the `StackStore` via Svelte context.
 - **`Stage`** — single host. Mounts every Layer.
 - **`LayerHost`** — per-Layer wrapper (usually rendered by `Stage`).
-- **`Sheet`**, **`Modal`**, **`Panel`**, **`PushScreen`** — the four presentation kinds.
 
 ## API
 
