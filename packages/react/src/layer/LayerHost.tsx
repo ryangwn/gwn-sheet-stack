@@ -45,29 +45,27 @@ export function LayerHost({ layerId, inert = false, children }: LayerHostProps) 
   }, []);
 
   useLayoutEffect(() => {
+    // Content-addressed layer ids embed JSON props (e.g.
+    // `article-detail:{"articleId":"a1"}`) so they contain characters that
+    // are invalid in an unquoted CSS attribute value. CSS.escape handles
+    // every edge case the spec allows; concatenating the raw id would throw
+    // a SyntaxError as soon as a props object contains a quote.
+    const layerSelector = `[data-sheetstack-layer="${CSS.escape(layerId)}"] [data-sheetstack-scroll-id]`;
     const unsub = store.registerSnapshotProvider(layerId, '__scroll__', {
       triggers: ['background', 'evicted'],
       capture: () => {
         const positions: Record<string, number> = {};
-        document
-          .querySelectorAll<HTMLElement>(
-            `[data-sheetstack-layer="${layerId}"] [data-sheetstack-scroll-id]`,
-          )
-          .forEach((el) => {
-            positions[el.dataset.sheetstackScrollId!] = el.scrollTop;
-          });
+        document.querySelectorAll<HTMLElement>(layerSelector).forEach((el) => {
+          positions[el.dataset.sheetstackScrollId!] = el.scrollTop;
+        });
         return positions;
       },
       restore: (snapshot) => {
         const positions = snapshot as Record<string, number>;
-        document
-          .querySelectorAll<HTMLElement>(
-            `[data-sheetstack-layer="${layerId}"] [data-sheetstack-scroll-id]`,
-          )
-          .forEach((el) => {
-            const saved = positions[el.dataset.sheetstackScrollId!];
-            if (saved != null) el.scrollTop = saved;
-          });
+        document.querySelectorAll<HTMLElement>(layerSelector).forEach((el) => {
+          const saved = positions[el.dataset.sheetstackScrollId!];
+          if (saved != null) el.scrollTop = saved;
+        });
       },
     });
     return unsub;
@@ -78,7 +76,7 @@ export function LayerHost({ layerId, inert = false, children }: LayerHostProps) 
       <div
         data-sheetstack-layer={layerId}
         style={{ position: 'fixed', inset: 0, pointerEvents: 'none' }}
-        {...(inert ? { inert: '' } : {})}
+        {...(inert ? { inert: true } : {})}
       >
         {children}
       </div>

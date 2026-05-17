@@ -18,8 +18,10 @@ export function useLayer() {
   // is authoritative — `history.back()` unmounts the Next route component,
   // whose `useLayerRoute` cleanup pops the layer.
   //
-  // Ephemeral layers still dispatch DISMISS directly until issue #5 lands
-  // their synthetic history entries.
+  // For ephemeral layers we dispatch DISMISS locally (so the surface adapter
+  // animates) AND pop the synthetic history entry that `push()` created via
+  // `router.pushHistory()` — otherwise the entry leaks and every subsequent
+  // `history.back()` has to walk past it (the "N clicks to close" bug).
   //
   // Spam guard: a layer already in `dismissing` ignores further close calls
   // so rapid clicks on the close button don't over-pop history.
@@ -31,6 +33,11 @@ export function useLayer() {
       return;
     }
     store.dispatch(layerId, { type: 'DISMISS', source: 'user' });
+    // Only pop history when a router is configured — that's the only path
+    // through which `push()` creates a synthetic entry. Without a router
+    // (Storybook, tests, headless), `history.back()` would walk the real
+    // browser history and navigate the host page away.
+    if (store.hasRouter && typeof window !== 'undefined') window.history.back();
   };
 
   return {

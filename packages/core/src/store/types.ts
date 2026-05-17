@@ -50,6 +50,15 @@ export interface PushRequest<K extends AnyKind = AnyKind> {
   detentId?: string;
   /** Default 'ephemeral'. `useLayerRoute` passes 'route-bound'. */
   flavor?: LayerFlavor;
+  /**
+   * Default true. When false, skip the content-addressed dedup check and
+   * push a fresh layer instance even if (kind, props) is already in the
+   * stack. Useful for "reading flows" where revisiting the same content
+   * means going *forward*, not back. The pushed layer gets a unique id
+   * (suffixed with a monotonic nonce) so snapshots and dispatch routing
+   * stay correct.
+   */
+  dedup?: boolean;
 }
 
 export interface SerializedLayer {
@@ -91,4 +100,10 @@ export interface StackStore {
   dispatch(layerId: string, event: LayerEvent): void;
   registerSnapshotProvider(layerId: string, key: string, provider: SnapshotProvider): () => void;
   events: EventBus;
+  /**
+   * True when a router adapter is configured. `useLayer.close()` reads this
+   * to know whether `push()` created a synthetic history entry to pop —
+   * without a router, `history.back()` would walk real browser history.
+   */
+  hasRouter: boolean;
 }

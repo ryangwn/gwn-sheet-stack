@@ -15,34 +15,17 @@
 //     useSheetStackRouter(stackStore, adapter);
 //     return <StackProvider value={stackStore}>{children}</StackProvider>;
 //   }
-import { useState } from 'react';
+import type { RouterAdapter, StackStore } from '@gwn-sheet-stack/core';
 
-import { hashLayerId } from '@gwn-sheet-stack/core';
-import type { StackStore } from '@gwn-sheet-stack/core';
-import type { RouterAdapter, SerializedLayer } from '@gwn-sheet-stack/core';
-
-export function useSheetStackRouter(store: StackStore, adapter: RouterAdapter): void {
-  // Synchronous hydration (ADR 0002): run during the root provider's first
-  // render — before child route components fire their `useLayerRoute`
-  // effects. React's render→effect order guarantees children's effects
-  // observe the hydrated below-top slice and only push the missing top.
-  useState(() => {
-    if (store.getState().stack.length > 0) return null;
-    const initial: SerializedLayer[] = adapter.read();
-    if (initial.length === 0) return null;
-    // Ephemerals don't survive refresh (ADR 0002 / issue #5). Pre-0.2 data
-    // had no flavor field; treat as route-bound for back-compat.
-    const restorable = initial.filter((l) => (l.flavor ?? 'route-bound') === 'route-bound');
-    if (restorable.length === 0) return null;
-    store.hydrate(
-      restorable.map((l) => ({
-        id: hashLayerId(l.kind, l.props),
-        kind: l.kind,
-        phase: 'active' as const,
-        props: l.props,
-        flavor: 'route-bound' as const,
-      })),
-    );
-    return null;
-  });
+export function useSheetStackRouter(_store: StackStore, _adapter: RouterAdapter): void {
+  // No-op today (ADR 0002). Below-top hydration is performed lazily by the
+  // store on the first route-bound push — which only happens when an
+  // intercepted modal route actually mounts and calls `useLayerRoute`. This
+  // gates orphan-sheet restoration on direct visits / refreshes that land
+  // on the full-page fallback (no `useLayerRoute` → no hydration → no
+  // sheet appearing over the page).
+  //
+  // Kept as a no-op hook so root providers can keep calling it; future
+  // adapter-side wiring (e.g., popstate listeners scoped to a React
+  // lifecycle) can hook in here.
 }
