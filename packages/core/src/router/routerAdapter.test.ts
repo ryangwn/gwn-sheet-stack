@@ -104,10 +104,15 @@ describe('RouterAdapter wiring', () => {
     store.dispatch(aId, { type: 'PRESENTED' });
 
     // popstate fires with no below-top — but the top is route-bound, so the
-    // store leaves it alone. The route component would unmount in a real Next
-    // setup and `useLayerRoute` cleanup would splice it.
+    // store leaves it untouched. The route component will unmount in a real
+    // Next setup and `useLayerRoute` cleanup will dispatch DISMISS (deferred,
+    // animated). This invariant gates the animation window for route-bound
+    // close: if the store dispatched DISMISS here, the layer would be torn
+    // down before the route unmount could schedule its own.
     adapter.triggerPopState([]);
-    expect(store.getState().stack.find((l) => l.id === aId)).toBeDefined();
+    const layer = store.getState().stack.find((l) => l.id === aId);
+    expect(layer).toBeDefined();
+    expect(layer!.phase).toBe('active');
   });
 
   test('popstate closes ephemeral on top of route-bound; route-bound survives', () => {

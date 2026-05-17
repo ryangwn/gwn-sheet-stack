@@ -32,7 +32,7 @@ describe('useLayerRoute', () => {
     expect(stack[0]!.id).toBe(hashLayerId('article', { articleId: 'a1' }));
   });
 
-  test('pops the Layer on unmount', () => {
+  test('dismisses (animated) the Layer on unmount; surface adapter completes the splice', async () => {
     const store = createStackStore({ mountWindow: 3 });
     const Wrapper = makeWrapper(store);
     const { unmount } = render(
@@ -41,8 +41,39 @@ describe('useLayerRoute', () => {
       </Wrapper>,
     );
     expect(store.getState().stack).toHaveLength(1);
+    const id = store.getState().stack[0]!.id;
     unmount();
+    // Cleanup defers the dismiss by one task so a StrictMode remount can
+    // cancel it. Flush the timer here to assert the post-unmount state.
+    await new Promise((r) => setTimeout(r, 0));
+    // Layer stays in stack at 'dismissing' so the surface adapter can animate.
+    expect(store.getState().stack).toHaveLength(1);
+    expect(store.getState().stack[0]!.phase).toBe('dismissing');
+    store.dispatch(id, { type: 'DISMISSED' });
     expect(store.getState().stack).toHaveLength(0);
+  });
+
+  test('synchronous remount (StrictMode) cancels the deferred cleanup dismiss', async () => {
+    const store = createStackStore({ mountWindow: 3 });
+    const Wrapper = makeWrapper(store);
+    const { unmount } = render(
+      <Wrapper>
+        <RouteComponent kind="article" props={{ articleId: 'a1' }} />
+      </Wrapper>,
+    );
+    const id = store.getState().stack[0]!.id;
+    // Simulate StrictMode: unmount → remount in the same tick.
+    unmount();
+    render(
+      <Wrapper>
+        <RouteComponent kind="article" props={{ articleId: 'a1' }} />
+      </Wrapper>,
+    );
+    await new Promise((r) => setTimeout(r, 0));
+    // The pending dismiss was cancelled; the layer is still mounting/active.
+    expect(store.getState().stack).toHaveLength(1);
+    expect(store.getState().stack[0]!.id).toBe(id);
+    expect(store.getState().stack[0]!.phase).not.toBe('dismissing');
   });
 
   test('re-mount of the same route component keeps the stack at length 1 (StrictMode safety)', () => {
