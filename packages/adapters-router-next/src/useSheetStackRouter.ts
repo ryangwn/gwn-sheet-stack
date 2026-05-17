@@ -15,24 +15,17 @@
 //     useSheetStackRouter(stackStore, adapter);
 //     return <StackProvider value={stackStore}>{children}</StackProvider>;
 //   }
-import { useEffect } from 'react';
+import type { RouterAdapter, StackStore } from '@gwn-sheet-stack/core';
 
-import type { StackStore } from '@gwn-sheet-stack/core';
-import type { RouterAdapter, SerializedLayer } from '@gwn-sheet-stack/core';
-
-export function useSheetStackRouter(store: StackStore, adapter: RouterAdapter): void {
-  useEffect(() => {
-    // Hydrate from URL on first client mount
-    const initial: SerializedLayer[] = adapter.read();
-    if (initial.length > 0) {
-      store.hydrate(
-        initial.map((l) => ({
-          id: `hydrated-${Math.random().toString(36).slice(2)}`,
-          kind: l.kind,
-          phase: 'active' as const,
-          props: l.encoded ? JSON.parse(l.encoded) : undefined,
-        })),
-      );
-    }
-  }, []);
+export function useSheetStackRouter(_store: StackStore, _adapter: RouterAdapter): void {
+  // No-op today (ADR 0002). Below-top hydration is performed lazily by the
+  // store on the first route-bound push — which only happens when an
+  // intercepted modal route actually mounts and calls `useLayerRoute`. This
+  // gates orphan-sheet restoration on direct visits / refreshes that land
+  // on the full-page fallback (no `useLayerRoute` → no hydration → no
+  // sheet appearing over the page).
+  //
+  // Kept as a no-op hook so root providers can keep calling it; future
+  // adapter-side wiring (e.g., popstate listeners scoped to a React
+  // lifecycle) can hook in here.
 }

@@ -53,7 +53,10 @@ export function renderModeFor(
 }
 
 export const transitions: Record<LayerPhase, Partial<Record<LayerEvent['type'], LayerPhase>>> = {
-  mounting: { MOUNTED: 'presenting' },
+  // DISMISS from mounting covers the race where a route component unmounts
+  // before the surface adapter has had a chance to fire MOUNTED — e.g. fast
+  // back-navigation right after a route push.
+  mounting: { MOUNTED: 'presenting', DISMISS: 'dismissing' },
   presenting: {
     PRESENTED: 'active',
     DRAG_START: 'dragging',

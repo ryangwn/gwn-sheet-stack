@@ -2,7 +2,8 @@
   "name": "gwn-sheet-stack",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "build": "bun scripts/run.ts build",
@@ -20,6 +21,7 @@
     "release": "bun run build && bun run verify:dist && bun scripts/publish.ts",
     "storybook": "bun run --cwd packages/storybook dev",
     "storybook:build": "bun run --cwd packages/storybook build",
+    "example:nextjs16": "bun run --cwd apps/nextjs16 dev",
     "postinstall": "lefthook install"
   },
   "lint-staged": {

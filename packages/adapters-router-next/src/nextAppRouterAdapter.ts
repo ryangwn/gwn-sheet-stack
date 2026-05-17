@@ -2,92 +2,77 @@
 
 import type { RouterAdapter, SerializedLayer } from '@gwn-sheet-stack/core';
 
-const KEY = '__ss';
+const STATE_KEY = '__ss';
 
-function encode(stack: SerializedLayer[]): string {
-  return JSON.stringify(stack);
+interface SheetStackState {
+  [STATE_KEY]?: SerializedLayer[];
+  [key: string]: unknown;
 }
 
-function decode(s: string | null): SerializedLayer[] {
-  if (!s) return [];
-  try {
-    return JSON.parse(s) as SerializedLayer[];
-  } catch {
-    return [];
-  }
+function readSliceFromHistory(): SerializedLayer[] {
+  if (typeof window === 'undefined') return [];
+  const s = (window.history.state as SheetStackState | null)?.[STATE_KEY];
+  return Array.isArray(s) ? (s as SerializedLayer[]) : [];
 }
 
-export interface NextAdapterOptions {
-  /** URL search param key. Default: '__ss' */
-  key?: string;
+function stripTop(stack: SerializedLayer[]): SerializedLayer[] {
+  if (stack.length === 0) return [];
+  const top = stack[stack.length - 1]!;
+  // Route-bound tops are implied by the URL; ephemeral tops are not, so they
+  // need to stay in state.ss so back-traversal can pop them in LIFO order.
+  return top.flavor === 'ephemeral' ? stack : stack.slice(0, -1);
 }
 
 /**
  * RouterAdapter for Next.js App Router.
  *
- * Usage:
- * ```ts
- * // app/providers.tsx
- * 'use client';
- * import { createStackStore } from '@gwn-sheet-stack/core';
- * import { nextAppRouterAdapter } from '@gwn-sheet-stack/adapters-router-next';
- *
- * export const stackStore = createStackStore({
- *   mountWindow: 3,
- *   router: nextAppRouterAdapter(),
- * });
- * ```
+ * Per ADR 0002 the adapter does not encode the stack in the URL. The top
+ * Layer's identity is implied by the pathname (Next intercepting/parallel
+ * routes), and the below-top slice lives in `history.state.ss` for in-session
+ * back-traversal. Refresh-survival comes from the browser preserving
+ * `history.state` within the tab.
  *
  * Filesystem convention for parallel + intercepting routes:
  *
  * app/
  *   @modal/
  *     (.)photo/[id]/
- *       page.tsx        ← intercepted modal route
+ *       page.tsx        ← intercepted modal route; calls useLayerRoute()
  *     default.tsx       ← MUST export null to prevent stale modal in DOM
  *   layout.tsx          ← renders {children} + {modal} slot
  *   photo/[id]/
  *     page.tsx          ← full-page fallback (direct URL access / refresh)
  */
-export function nextAppRouterAdapter(opts: NextAdapterOptions = {}): RouterAdapter {
-  const key = opts.key ?? KEY;
-
-  // next/navigation imports are deferred to avoid errors in non-Next envs
-  // and because useRouter/useSearchParams must be called inside React components.
-  // The adapter reads/writes the URL imperatively via window.location.
-
+export function nextAppRouterAdapter(): RouterAdapter {
   return {
     read() {
-      if (typeof window === 'undefined') return [];
-      return decode(new URLSearchParams(window.location.search).get(key));
+      return readSliceFromHistory();
     },
 
     write(stack) {
       if (typeof window === 'undefined') return;
       const url = new URL(window.location.href);
-      if (stack.length) {
-        url.searchParams.set(key, encode(stack));
-      } else {
-        url.searchParams.delete(key);
-      }
-      // Use replaceState — Next.js router observes this via its own popstate listener
-      window.history.replaceState(window.history.state, '', url.toString());
+      // Drop any legacy `?__ss=` payload from earlier 0.1.x versions.
+      url.searchParams.delete(STATE_KEY);
+      const next: SheetStackState = {
+        ...(window.history.state as SheetStackState | null),
+        [STATE_KEY]: stripTop(stack),
+      };
+      // Use replaceState — Next.js router observes this via its own popstate
+      // listener.
+      window.history.replaceState(next, '', url.toString());
     },
 
     onPopState(cb) {
       if (typeof window === 'undefined') return () => {};
-      const handler = (_: PopStateEvent) => {
-        const params = new URLSearchParams(window.location.search);
-        const stack = decode(params.get(key));
-        cb(stack);
-      };
+      const handler = () => cb(readSliceFromHistory());
       window.addEventListener('popstate', handler);
       return () => window.removeEventListener('popstate', handler);
     },
 
     pushHistory() {
       if (typeof window === 'undefined') return;
-      window.history.pushState(window.history.state, '');
+      window.history.pushState({ ...(window.history.state as object | null) }, '');
     },
   };
 }

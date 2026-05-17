@@ -13,7 +13,10 @@ Use these terms exactly. If a concept here is missing, add it; don't invent syno
 - **Mount window** — LRU bound on how many backgrounded Layers stay mounted. Excess Layers serialize to a **Snapshot** and re-hydrate on re-entry.
 - **Snapshot** — opaque blob captured by registered **SnapshotProviders** when a Layer is backgrounded or evicted.
 - **FSM phase** — `'mounting' | 'presenting' | 'active' | 'background' | 'dragging' | 'snapping' | 'dismissing' | 'evicted'`. Transitions live in `core/store/fsm.ts`.
-- **RouterAdapter** — pluggable interface (`read | write | onPopState | pushHistory`) so the stack can be serialized to URL. Concrete adapters live in `packages/adapters-router-*`. A reference `historyAdapter` ships in `core/router/historyAdapter.ts`.
+- **RouterAdapter** — pluggable interface (`read | write | onPopState | pushHistory`) so the stack can be projected onto browser history. Concrete adapters live in `packages/adapters-router-*`. A reference `historyAdapter` ships in `core/router/historyAdapter.ts`. See ADR 0002 — history is the source of truth; the adapter syncs the stack to it, not vice-versa.
+- **Layer flavor** — every Layer is either **route-bound** (declared via `useLayerRoute` inside a route file; participates in the URL and browser history) or **ephemeral** (pushed via `stack.push()`; no URL change, gets a synthetic history frame so browser-Back still closes it). Default for `useLayerRoute` is route-bound; default for raw `stack.push()` is ephemeral.
+- **Layer id** — content-addressed: `hash(kind, stableStringify(props))`. The same `(kind, props)` cannot appear twice in the stack at once. Snapshot keys and idempotency checks both use this id.
+- **`history.state.ss`** — the session back-stack, holding the slice **below the top Layer** as `[{kind, props}]`. Survives refresh in the tab; not preserved on share/copy-link. The top Layer is implicit from the URL (route-bound) or unreachable across refresh (ephemeral).
 
 ## Headless positioning (since 0.1.0, 2026-05-16)
 
@@ -29,6 +32,7 @@ The library ships **no surface components and no animation engine**. `Modal`, `P
 
 ## Hooks (React)
 
+- **useLayerRoute** — call inside a Next route file (typically the intercepted `@modal/(.)…/page.tsx`) to declare "this route IS a route-bound Layer of `kind` with these `props`." Pushes idempotently on mount, pops on unmount via skip-animation dismiss (animated exit is the surface adapter's responsibility). The canonical entry point for route-bound Layers.
 - **useLayerId** — `string` from `LayerContext`. Required inside any Layer component.
 - **useLayerPhase** — current FSM phase for a layerId. The bridge between the FSM and the surface library's `open` prop.
 - **useLayer** — current Layer record (props, id, `close()`, `snapTo()`).
@@ -41,3 +45,4 @@ The library ships **no surface components and no animation engine**. `Modal`, `P
 - **Data attributes** — `[data-sheetstack-host]`, `[data-sheetstack-layer]`. These are styling hooks, not state — derive them from the FSM, never from inline JS state.
 - **FSM dispatch from animations** — happens inside the adapter's own phase-watching effect. The rule: a Layer should never get stuck in `presenting` or `dismissing` because nothing dispatched the settle event. (User-driven `DISMISS` from clicks/escape is fine — that's intent, not animation timing.)
 - **Animation is not the library's concern** — anything that moves on screen belongs to the surface library or to the adapter's own CSS/JS. The stack owns lifecycle and order; it does not own pixels.
+- **History is the source of truth** — `layer.close()` calls `router.back()` / `history.back()`, never dispatches to the store. The store reacts to popstate and route unmount. One causation path: user intent → history → store → surface. See ADR 0002.

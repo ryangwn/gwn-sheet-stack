@@ -1,10 +1,12 @@
 // Store
 export { createStackStore } from './store/store';
 export { LRUMountWindow } from './store/lru';
+export { hashLayerId, stableStringify, validateSerializableProps } from './store/layerId';
 export type {
   SheetRegistry,
   SnapshotProvider,
   Layer,
+  LayerFlavor,
   State,
   PushRequest,
   SerializedLayer,
@@ -31,3 +33,4 @@ export { EventBus } from './event/eventBus';
 
 // Router
 export { historyAdapter } from './router/historyAdapter';
+export type { HistoryAdapterOptions, RouteEntry } from './router/historyAdapter';
