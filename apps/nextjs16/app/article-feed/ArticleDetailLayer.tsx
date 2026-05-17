@@ -3,7 +3,6 @@
 import React from 'react';
 
 import { useLayer, useStack } from '@gwn-sheet-stack/react';
-import Link from 'next/link';
 import { Drawer } from 'vaul';
 
 import { useVaulLayer } from '../hooks/useVaulLayer';
@@ -67,7 +66,8 @@ function CloseIcon() {
 export function ArticleDetailLayer() {
   const vaul = useVaulLayer();
   const layer = useLayer();
-  const { push } = useStack();
+  const store = useStack();
+  const { push } = store;
   const container = usePortalContainer();
   const articleId = (layer.props as { articleId: string }).articleId;
   const article = articleById(articleId);
@@ -162,9 +162,27 @@ export function ArticleDetailLayer() {
                 {article.related.map((rid) => {
                   const r = articleById(rid);
                   return (
-                    <Link
+                    <button
                       key={rid}
-                      href={`/articles/${rid}`}
+                      type="button"
+                      onClick={() => {
+                        // Always push forward — reading flow, no dedup. The
+                        // same article can appear at multiple stack depths;
+                        // back button walks one step at a time.
+                        //
+                        // URL sync via replaceState (not Next's router) so the
+                        // parent intercepted route doesn't re-render and tear
+                        // down the underlay. queueMicrotask defers past any
+                        // sync replaceState `push()` emits via the adapter.
+                        push({
+                          kind: 'article-detail',
+                          props: { articleId: rid },
+                          dedup: false,
+                        });
+                        queueMicrotask(() => {
+                          window.history.replaceState(window.history.state, '', `/articles/${rid}`);
+                        });
+                      }}
                       style={{
                         all: 'unset',
                         cursor: 'pointer',
@@ -200,7 +218,7 @@ export function ArticleDetailLayer() {
                           {r.author} · {r.minutes} min
                         </div>
                       </div>
-                    </Link>
+                    </button>
                   );
                 })}
               </div>
