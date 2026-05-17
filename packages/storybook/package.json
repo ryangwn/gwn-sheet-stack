@@ -12,14 +12,14 @@
   },
   "devDependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
-    "@storybook/addon-docs": "10.3.5",
-    "@storybook/react": "10.3.5",
-    "@storybook/react-vite": "10.3.5",
-    "react": "^18",
-    "react-dom": "^18",
-    "storybook": "10.3.5",
-    "typescript": "~5",
+    "@storybook/addon-docs": "10.4.0",
+    "@storybook/react": "10.4.0",
+    "@storybook/react-vite": "10.4.0",
+    "react": "^19",
+    "react-dom": "^19",
+    "storybook": "10.4.0",
+    "typescript": "~6",
     "vaul": "^1.1.2",
-    "vite": "^6"
+    "vite": "^8"
   }
 }
