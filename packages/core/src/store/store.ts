@@ -38,7 +38,11 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
 
   constructor(config: StackStoreConfig) {
     super();
-    this.dev = config.dev ?? process.env.NODE_ENV !== 'production';
+    // `process` is undefined in non-bundled ESM (browser direct, Deno). Guard
+    // so `createStackStore({mountWindow:3})` doesn't ReferenceError on the
+    // first call. Consumers can still force-set `dev` via config.
+    this.dev =
+      config.dev ?? (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production');
     this.maxDepth = config.maxDepth ?? Infinity;
     this.router = config.router;
     this.lru = new LRUMountWindow(config.mountWindow);
@@ -312,10 +316,25 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
     // is ignored — we re-derive from (kind, props) so hydrate cannot smuggle
     // in a layer whose id disagrees with a subsequent push of the same
     // (kind, props).
+    //
+    // Phase is clamped to 'active' regardless of input. Accepting 'evicted'
+    // or 'dismissing' would deadlock the FSM (no MOUNTED transition from
+    // those phases) and leak a stuck record in the stack. Snapshot is
+    // dropped for the same reason; restore happens on the next MOUNTED.
     this.state = {
-      stack: layers.map(
-        (l) => ({ ...l, id: hashLayerId(l.kind, l.props), hydrated: true }) as InternalLayer,
-      ),
+      stack: layers.map((l) => {
+        // Drop snapshot from input — restore happens on next MOUNTED, not on
+        // hydrate. `exactOptionalPropertyTypes` rejects `snapshot: undefined`,
+        // so destructure-and-omit rather than overwrite.
+        const { snapshot: _drop, ...rest } = l;
+        void _drop;
+        return {
+          ...rest,
+          id: hashLayerId(l.kind, l.props),
+          phase: 'active',
+          hydrated: true,
+        } as InternalLayer;
+      }),
     };
     this.lastIdSeq = this.state.stack.map((l) => l.id);
     this.emit();
