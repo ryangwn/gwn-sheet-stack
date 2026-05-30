@@ -1,3 +1,8 @@
+// Every export here uses React hooks and/or DOM globals (window, document,
+// history). Marking the whole entry as a Client Component module so Next.js
+// App Router consumers don't have to thread 'use client' through each file.
+'use client';
+
 // Stack
 export { StackProvider, useStack, useStackState } from './stack/context';
 
