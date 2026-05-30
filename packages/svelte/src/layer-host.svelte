@@ -1,6 +1,6 @@
 <script lang="ts">
   import { setLayerContext } from './lib/context';
-  import { getStack } from './lib/getStack';
+  import { getStack } from './lib/get-stack';
 
   interface Props {
     layerId: string;

@@ -1,8 +1,8 @@
-import { EventBus as EventBusImpl } from '../event/eventBus';
+import { EventBus as EventBusImpl } from '../event/event-bus';
 import { type LayerEvent, transitions } from './fsm';
-import { hashLayerId } from './layerId';
+import { hashLayerId } from './layer-id';
 import { LRUMountWindow } from './lru';
-import { SnapshotStore } from './snapshotStore';
+import { SnapshotStore } from './snapshot-store';
 import type {
   Layer,
   PushRequest,
@@ -84,9 +84,9 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
   // NOT go through here.
   private setStack(stack: readonly InternalLayer[]): void {
     this.state = { stack };
-    const idx = new Map<string, number>();
-    for (let i = 0; i < stack.length; i++) idx.set(stack[i]!.id, i);
-    this.idIndex = idx;
+    const index = new Map<string, number>();
+    for (let i = 0; i < stack.length; i++) index.set(stack[i]!.id, i);
+    this.idIndex = index;
     this.shapeVersion++;
   }
 
@@ -94,9 +94,9 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
     return this.idIndex.get(layerId) ?? -1;
   }
 
-  private replaceLayer(idx: number, updates: Partial<InternalLayer>): void {
+  private replaceLayer(index: number, updates: Partial<InternalLayer>): void {
     const stack = [...this.state.stack];
-    stack[idx] = { ...this.state.stack[idx]!, ...updates };
+    stack[index] = { ...this.state.stack[index]!, ...updates };
     // Order/ids preserved → reuse idIndex, no shape bump.
     this.state = { stack };
   }
@@ -104,9 +104,9 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
   private captureSnapshot(layerId: string, trigger: 'background' | 'evicted'): void {
     const providers = this.snapshotProviders.get(layerId);
     if (!providers) return;
-    const idx = this.indexOf(layerId);
-    if (idx === -1) return;
-    const existing = this.state.stack[idx]!.snapshot;
+    const index = this.indexOf(layerId);
+    if (index === -1) return;
+    const existing = this.state.stack[index]!.snapshot;
     const captured: Record<string, unknown> = existing ? { ...existing } : {};
     let anyCaptured = false;
     for (const [key, provider] of providers) {
@@ -115,15 +115,15 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
         anyCaptured = true;
       }
     }
-    if (anyCaptured || existing) this.replaceLayer(idx, { snapshot: captured });
+    if (anyCaptured || existing) this.replaceLayer(index, { snapshot: captured });
   }
 
   private restoreSnapshot(layerId: string): void {
     const providers = this.snapshotProviders.get(layerId);
     if (!providers) return;
-    const idx = this.indexOf(layerId);
-    if (idx === -1) return;
-    const snap = this.state.stack[idx]!.snapshot;
+    const index = this.indexOf(layerId);
+    if (index === -1) return;
+    const snap = this.state.stack[index]!.snapshot;
     if (!snap) return;
     for (const [key, provider] of providers) {
       if (key in snap) provider.restore(snap[key]);
@@ -273,9 +273,9 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
       }
       // auto-evict overflow after push
       for (const overflowId of this.lru.computeOverflow()) {
-        const idx = this.indexOf(overflowId);
-        if (idx === -1) continue;
-        const l = this.state.stack[idx]!;
+        const index = this.indexOf(overflowId);
+        if (index === -1) continue;
+        const l = this.state.stack[index]!;
         if (l.phase === 'background' || l.phase === 'active') {
           this.dispatch(overflowId, { type: 'EVICT' });
         }
@@ -294,9 +294,9 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
   };
 
   popTo = (layerId: string): void => {
-    const idx = this.indexOf(layerId);
-    if (idx === -1) return;
-    for (let i = this.state.stack.length - 1; i > idx; i--) {
+    const index = this.indexOf(layerId);
+    if (index === -1) return;
+    for (let i = this.state.stack.length - 1; i > index; i--) {
       const isTop = i === this.state.stack.length - 1;
       this.dispatch(this.state.stack[i]!.id, {
         type: 'DISMISS',
@@ -373,9 +373,9 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
   };
 
   dispatch = (layerId: string, event: LayerEvent): void => {
-    const idx = this.indexOf(layerId);
-    if (idx === -1) return;
-    const layer = this.state.stack[idx]!;
+    const index = this.indexOf(layerId);
+    if (index === -1) return;
+    const layer = this.state.stack[index]!;
     // Idempotency: MOUNTED from an already-transitioned phase is a no-op (StrictMode).
     if (event.type === 'MOUNTED' && layer.phase !== 'mounting') return;
     // Idempotency: EVICT to already-evicted layer is a no-op.
@@ -392,7 +392,7 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
         return;
       }
       const dismissSource = (layer as InternalLayer & { pendingSource?: string }).pendingSource;
-      this.setStack(this.state.stack.filter((_, i) => i !== idx));
+      this.setStack(this.state.stack.filter((_, i) => i !== index));
       this.lru.forget(layerId);
       this.snapshotProviders.delete(layerId);
       layer.resolve?.(layer.pendingResult);
@@ -456,7 +456,7 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
     if (next === 'active') {
       (updates as unknown as Record<string, unknown>).snapshot = undefined;
     }
-    this.replaceLayer(idx, updates);
+    this.replaceLayer(index, updates);
     this.emit();
 
     if (event.type === 'DISMISS' && event.skipAnimation) {

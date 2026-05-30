@@ -3,11 +3,11 @@ import { createPortal } from 'react-dom';
 
 import { inertForLayer, renderModeFor } from '@gwn-sheet-stack/core';
 
-import { LayerContext } from '../layer/LayerContext';
-import { LayerHost } from '../layer/LayerHost.tsx';
+import { LayerContext } from '../layer/layer-context';
+import { LayerHost } from '../layer/layer-host.tsx';
 import { useStackState } from '../stack/context';
-import { HiddenPolyfill } from './HiddenPolyfill.tsx';
-import { useTopLayer } from './useTopLayer';
+import { HiddenPolyfill } from './hidden-polyfill.tsx';
+import { useTopLayer } from './use-top-layer';
 
 interface StageProps {
   registry: Record<string, React.ComponentType<Record<string, unknown>>>;

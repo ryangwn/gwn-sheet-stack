@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef } from 'react';
 import type { LayerPhase } from '@gwn-sheet-stack/core';
 
 import { useStackState } from '../stack/context';
-import { useLayerId } from './LayerContext';
+import { useLayerId } from './layer-context';
 
 export interface LifecycleCallbacks {
   onLoad?: () => void;

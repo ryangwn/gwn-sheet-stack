@@ -1,4 +1,4 @@
-import type { EventBus } from '../event/eventBus';
+import type { EventBus } from '../event/event-bus';
 import type { LayerEvent, LayerPhase, PresentationKind } from './fsm';
 
 /** Extend this interface via module augmentation to type-check `push`. */

@@ -1,5 +1,5 @@
 import { useStack, useStackState } from '../stack/context';
-import { useLayerId } from './LayerContext';
+import { useLayerId } from './layer-context';
 
 export function useLayer() {
   const layerId = useLayerId();

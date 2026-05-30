@@ -52,16 +52,16 @@ function compile(entry: RouteEntry): CompiledRoute {
 }
 
 function matchTop(compiled: CompiledRoute[], pathname: string): SerializedLayer | null {
-  for (const c of compiled) {
-    const m = c.regex.exec(pathname);
-    if (!m) continue;
+  for (const route of compiled) {
+    const match = route.regex.exec(pathname);
+    if (!match) continue;
     const params: Record<string, string> = {};
-    c.keys.forEach((k, i) => {
-      params[k] = decodeURIComponent(m[i + 1]!);
+    route.keys.forEach((key, i) => {
+      params[key] = decodeURIComponent(match[i + 1]!);
     });
     return {
-      kind: c.entry.kind,
-      props: c.entry.extract(params),
+      kind: route.entry.kind,
+      props: route.entry.extract(params),
       flavor: 'route-bound' as LayerFlavor,
     };
   }
@@ -70,8 +70,8 @@ function matchTop(compiled: CompiledRoute[], pathname: string): SerializedLayer 
 
 function readSliceFromHistory(): SerializedLayer[] {
   if (typeof window === 'undefined') return [];
-  const s = (window.history.state as SheetStackState | null)?.[STATE_KEY];
-  return Array.isArray(s) ? (s as SerializedLayer[]) : [];
+  const historyState = (window.history.state as SheetStackState | null)?.[STATE_KEY];
+  return Array.isArray(historyState) ? (historyState as SerializedLayer[]) : [];
 }
 
 function stripTop(stack: SerializedLayer[]): SerializedLayer[] {

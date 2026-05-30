@@ -1,8 +1,8 @@
 <script lang="ts">
   import { renderModeFor, inertForLayer } from '@gwn-sheet-stack/core';
-  import { getStack } from './lib/getStack';
+  import { getStack } from './lib/get-stack';
   import { portal } from './lib/portal';
-  import LayerHost from './LayerHost.svelte';
+  import LayerHost from './layer-host.svelte';
 
   interface Props {
     registry: Record<string, import('svelte').Component<any>>;

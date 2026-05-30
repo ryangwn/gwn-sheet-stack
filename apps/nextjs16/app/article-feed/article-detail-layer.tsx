@@ -5,10 +5,10 @@ import React from 'react';
 import { useLayer, useStack } from '@gwn-sheet-stack/react';
 import { Drawer } from 'vaul';
 
-import { useVaulLayer } from '../hooks/useVaulLayer';
-import { PillButton } from './PillButton';
-import { usePortalContainer } from './PortalContainerContext';
+import { useVaulLayer } from '../hooks/use-vaul-layer';
 import { articleById } from './data';
+import { PillButton } from './pill-button';
+import { usePortalContainer } from './portal-container-context';
 import { FONT_SANS, FONT_SERIF, chip, sheetSurface } from './tokens';
 
 const fullScreenSurface: React.CSSProperties = {

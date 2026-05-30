@@ -11,8 +11,8 @@ interface SheetStackState {
 
 function readSliceFromHistory(): SerializedLayer[] {
   if (typeof window === 'undefined') return [];
-  const s = (window.history.state as SheetStackState | null)?.[STATE_KEY];
-  return Array.isArray(s) ? (s as SerializedLayer[]) : [];
+  const historyState = (window.history.state as SheetStackState | null)?.[STATE_KEY];
+  return Array.isArray(historyState) ? (historyState as SerializedLayer[]) : [];
 }
 
 function stripTop(stack: SerializedLayer[]): SerializedLayer[] {

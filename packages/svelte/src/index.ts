@@ -1,12 +1,12 @@
-export { default as StackProvider } from './StackProvider.svelte';
-export { default as Stage } from './Stage.svelte';
-export { default as LayerHost } from './LayerHost.svelte';
+export { default as StackProvider } from './stack-provider.svelte';
+export { default as Stage } from './stage.svelte';
+export { default as LayerHost } from './layer-host.svelte';
 
-export { getStack } from './lib/getStack';
-export { getLayer } from './lib/getLayer';
-export { defineRegistry } from './lib/defineRegistry';
+export { getStack } from './lib/get-stack';
+export { getLayer } from './lib/get-layer';
+export { defineRegistry } from './lib/define-registry';
 export { portal } from './lib/portal';
-export { keyboardAvoidance } from './lib/keyboardAvoidance';
+export { keyboardAvoidance } from './lib/keyboard-avoidance';
 
 export {
   onLayerLoad,
