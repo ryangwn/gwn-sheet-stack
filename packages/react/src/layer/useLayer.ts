@@ -29,7 +29,21 @@ export function useLayer() {
     const current = store.getState().stack.find((l) => l.id === layerId);
     if (!current || current.phase === 'dismissing') return;
     if (current.flavor === 'route-bound') {
-      if (typeof window !== 'undefined') window.history.back();
+      if (typeof window === 'undefined') return;
+      window.history.back();
+      // Deep-link safety: `history.back()` is a no-op when the modal entry
+      // is the bottom of the session (user landed directly on the URL). The
+      // route component never unmounts, so `useLayerRoute` cleanup never
+      // fires and the close button feels broken. If popstate hasn't acted
+      // shortly, force-dismiss locally. popstate normally lands within a
+      // few ms — 80ms leaves slack for slow main-threads without being
+      // perceptible.
+      setTimeout(() => {
+        const stillThere = store.getState().stack.find((l) => l.id === layerId);
+        if (stillThere && stillThere.phase !== 'dismissing') {
+          store.dispatch(layerId, { type: 'DISMISS', source: 'user' });
+        }
+      }, 80);
       return;
     }
     store.dispatch(layerId, { type: 'DISMISS', source: 'user' });
