@@ -31,8 +31,10 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
   private readonly snapshotProviders = new Map<string, Map<string, SnapshotProvider>>();
 
   private state: { stack: readonly InternalLayer[] } = { stack: [] };
+  private idIndex = new Map<string, number>();
+  private shapeVersion = 0;
+  private lastSyncedVersion = 0;
   private nonce = 0;
-  private lastIdSeq: readonly string[] = [];
   private popstateInFlight = false;
   private hydratedFromRouter = false;
 
@@ -70,21 +72,39 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
         }
       } finally {
         this.popstateInFlight = false;
-        this.lastIdSeq = this.state.stack.map((l) => l.id);
+        // History is authoritative for what just happened — don't echo back.
+        this.lastSyncedVersion = this.shapeVersion;
       }
     });
+  }
+
+  // Single structural-mutation chokepoint: rebuilds the id-index in O(n) and
+  // bumps the shape version so syncRouter's diff is O(1). Callers replace the
+  // whole stack array; `replaceLayer` keeps order and ids intact so it does
+  // NOT go through here.
+  private setStack(stack: readonly InternalLayer[]): void {
+    this.state = { stack };
+    const idx = new Map<string, number>();
+    for (let i = 0; i < stack.length; i++) idx.set(stack[i]!.id, i);
+    this.idIndex = idx;
+    this.shapeVersion++;
+  }
+
+  private indexOf(layerId: string): number {
+    return this.idIndex.get(layerId) ?? -1;
   }
 
   private replaceLayer(idx: number, updates: Partial<InternalLayer>): void {
     const stack = [...this.state.stack];
     stack[idx] = { ...this.state.stack[idx]!, ...updates };
+    // Order/ids preserved → reuse idIndex, no shape bump.
     this.state = { stack };
   }
 
   private captureSnapshot(layerId: string, trigger: 'background' | 'evicted'): void {
     const providers = this.snapshotProviders.get(layerId);
     if (!providers) return;
-    const idx = this.state.stack.findIndex((l) => l.id === layerId);
+    const idx = this.indexOf(layerId);
     if (idx === -1) return;
     const existing = this.state.stack[idx]!.snapshot;
     const captured: Record<string, unknown> = existing ? { ...existing } : {};
@@ -101,7 +121,7 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
   private restoreSnapshot(layerId: string): void {
     const providers = this.snapshotProviders.get(layerId);
     if (!providers) return;
-    const idx = this.state.stack.findIndex((l) => l.id === layerId);
+    const idx = this.indexOf(layerId);
     if (idx === -1) return;
     const snap = this.state.stack[idx]!.snapshot;
     if (!snap) return;
@@ -130,11 +150,11 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
   private syncRouter(): void {
     if (!this.router) return;
     if (this.popstateInFlight) return;
-    const ids = this.state.stack.map((l) => l.id);
-    if (ids.length === this.lastIdSeq.length && ids.every((id, i) => id === this.lastIdSeq[i])) {
-      return;
-    }
-    this.lastIdSeq = ids;
+    // Shape-version counter: bumps only on structural mutations (push, splice,
+    // hydrate), not on FSM phase transitions. Replaces the per-emit
+    // `.map().every()` allocation of the previous id-sequence diff.
+    if (this.shapeVersion === this.lastSyncedVersion) return;
+    this.lastSyncedVersion = this.shapeVersion;
     this.router.write(this.serializeForRouter());
   }
 
@@ -162,8 +182,8 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
       const initial = this.router.read();
       const restorable = initial.filter((l) => (l.flavor ?? 'route-bound') === 'route-bound');
       if (restorable.length > 0) {
-        this.state = {
-          stack: restorable.map(
+        this.setStack(
+          restorable.map(
             (l) =>
               ({
                 id: hashLayerId(l.kind, l.props),
@@ -174,8 +194,9 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
                 hydrated: true,
               }) as InternalLayer,
           ),
-        };
-        this.lastIdSeq = this.state.stack.map((l) => l.id);
+        );
+        // Router-driven hydration is already synced with history.
+        this.lastSyncedVersion = this.shapeVersion;
         this.emit();
       }
     }
@@ -191,8 +212,7 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
     const baseId = hashLayerId(req.kind, req.props);
     const id = dedup ? baseId : `${baseId}#${++this.nonce}`;
     if (dedup) {
-      const existingIdx = this.state.stack.findIndex((l) => l.id === id);
-      if (existingIdx !== -1) {
+      if (this.indexOf(id) !== -1) {
         this.popTo(id);
         return Promise.resolve(undefined as R);
       }
@@ -221,7 +241,7 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
     this.lru.touch(layer.id);
     if (req.reset) {
       const toEvict = [...this.state.stack];
-      this.state = { stack: [...this.state.stack, layer] };
+      this.setStack([...this.state.stack, layer]);
       for (let i = toEvict.length - 1; i >= 0; i--) {
         this.dispatch(toEvict[i]!.id, {
           type: 'DISMISS',
@@ -231,11 +251,11 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
       }
       this.syncedNotify();
     } else if (req.replace && prevTop) {
-      this.state = { stack: [...this.state.stack, layer] };
+      this.setStack([...this.state.stack, layer]);
       this.dispatch(prevTop.id, { type: 'DISMISS', source: 'replaced', skipAnimation: true });
       this.syncedNotify();
     } else {
-      this.state = { stack: [...this.state.stack, layer] };
+      this.setStack([...this.state.stack, layer]);
       // Only ephemerals create a synthetic history entry. Route-bound
       // layers come from `useLayerRoute` running inside a route file that
       // Next already navigated to via <Link>; pushing another entry would
@@ -253,8 +273,10 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
       }
       // auto-evict overflow after push
       for (const overflowId of this.lru.computeOverflow()) {
-        const l = this.state.stack.find((x) => x.id === overflowId);
-        if (l && (l.phase === 'background' || l.phase === 'active')) {
+        const idx = this.indexOf(overflowId);
+        if (idx === -1) continue;
+        const l = this.state.stack[idx]!;
+        if (l.phase === 'background' || l.phase === 'active') {
           this.dispatch(overflowId, { type: 'EVICT' });
         }
       }
@@ -272,7 +294,7 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
   };
 
   popTo = (layerId: string): void => {
-    const idx = this.state.stack.findIndex((l) => l.id === layerId);
+    const idx = this.indexOf(layerId);
     if (idx === -1) return;
     for (let i = this.state.stack.length - 1; i > idx; i--) {
       const isTop = i === this.state.stack.length - 1;
@@ -321,8 +343,8 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
     // or 'dismissing' would deadlock the FSM (no MOUNTED transition from
     // those phases) and leak a stuck record in the stack. Snapshot is
     // dropped for the same reason; restore happens on the next MOUNTED.
-    this.state = {
-      stack: layers.map((l) => {
+    this.setStack(
+      layers.map((l) => {
         // Drop snapshot from input — restore happens on next MOUNTED, not on
         // hydrate. `exactOptionalPropertyTypes` rejects `snapshot: undefined`,
         // so destructure-and-omit rather than overwrite.
@@ -335,8 +357,9 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
           hydrated: true,
         } as InternalLayer;
       }),
-    };
-    this.lastIdSeq = this.state.stack.map((l) => l.id);
+    );
+    // Hydrate is the consumer's authoritative seed — don't echo back to history.
+    this.lastSyncedVersion = this.shapeVersion;
     this.emit();
   };
 
@@ -350,7 +373,7 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
   };
 
   dispatch = (layerId: string, event: LayerEvent): void => {
-    const idx = this.state.stack.findIndex((l) => l.id === layerId);
+    const idx = this.indexOf(layerId);
     if (idx === -1) return;
     const layer = this.state.stack[idx]!;
     // Idempotency: MOUNTED from an already-transitioned phase is a no-op (StrictMode).
@@ -369,16 +392,15 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
         return;
       }
       const dismissSource = (layer as InternalLayer & { pendingSource?: string }).pendingSource;
-      const stack = this.state.stack.filter((_, i) => i !== idx);
-      this.state = { stack };
+      this.setStack(this.state.stack.filter((_, i) => i !== idx));
       this.lru.forget(layerId);
       this.snapshotProviders.delete(layerId);
       layer.resolve?.(layer.pendingResult);
       // Router-driven dismiss: history is already authoritative, don't echo
-      // a write back. Refresh the id-sequence snapshot so the next genuine
-      // shape change is detected.
+      // a write back. Mark this shape version as already-synced so the next
+      // genuine shape change is what triggers a router write.
       if (dismissSource === 'router') {
-        this.lastIdSeq = this.state.stack.map((l) => l.id);
+        this.lastSyncedVersion = this.shapeVersion;
         this.emit();
       } else {
         this.syncedNotify();
@@ -438,9 +460,9 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
     this.emit();
 
     if (event.type === 'DISMISS' && event.skipAnimation) {
-      const dismissedIdx = this.state.stack.findIndex((l) => l.id === layerId);
+      const dismissedIdx = this.indexOf(layerId);
       const dismissed = this.state.stack[dismissedIdx]! as InternalLayer;
-      this.state = { stack: this.state.stack.filter((_, i) => i !== dismissedIdx) };
+      this.setStack(this.state.stack.filter((_, i) => i !== dismissedIdx));
       this.emit();
       this.lru.forget(layerId);
       this.snapshotProviders.delete(layerId);
