@@ -82,6 +82,25 @@ function stripTop(stack: SerializedLayer[]): SerializedLayer[] {
   return top.flavor === 'ephemeral' ? stack : stack.slice(0, -1);
 }
 
+// Reconstruct the full stack from the persisted below-top slice plus the
+// route-bound layer implied by the current URL.
+//
+// `stripTop` keeps ephemerals in `state.ss` and drops route-bound tops. So a
+// slice ending with an ephemeral IS the full stack — appending the
+// URL-matched route-bound layer would produce `[…, ephemeral, route-bound]`
+// (e.g. route A → ephemeral B → ephemeral C; back to B-entry has
+// `__ss=[A,B]`, URL still matches A, and a naive append yields `[A,B,A]`
+// length 3 → store sees no shrink → C never dismissed).
+function reconstructStack(
+  slice: SerializedLayer[],
+  matched: SerializedLayer | null,
+): SerializedLayer[] {
+  if (!matched) return slice;
+  const top = slice[slice.length - 1];
+  if (top && top.flavor === 'ephemeral') return slice;
+  return [...slice, matched];
+}
+
 export function historyAdapter(opts: HistoryAdapterOptions = {}): RouterAdapter {
   const compiled: CompiledRoute[] = (opts.routes ?? []).map(compile);
 
@@ -89,10 +108,7 @@ export function historyAdapter(opts: HistoryAdapterOptions = {}): RouterAdapter 
     read() {
       const slice = readSliceFromHistory();
       if (compiled.length === 0 || typeof window === 'undefined') return slice;
-      // If the URL matches a route, append the synthesised top so the
-      // caller sees the full desired stack.
-      const matched = matchTop(compiled, window.location.pathname);
-      return matched ? [...slice, matched] : slice;
+      return reconstructStack(slice, matchTop(compiled, window.location.pathname));
     },
     write(stack) {
       if (typeof window === 'undefined') return;
@@ -124,8 +140,7 @@ export function historyAdapter(opts: HistoryAdapterOptions = {}): RouterAdapter 
           cb(slice);
           return;
         }
-        const matched = matchTop(compiled, window.location.pathname);
-        cb(matched ? [...slice, matched] : slice);
+        cb(reconstructStack(slice, matchTop(compiled, window.location.pathname)));
       };
       window.addEventListener('popstate', handler);
       return () => window.removeEventListener('popstate', handler);

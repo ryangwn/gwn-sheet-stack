@@ -308,9 +308,15 @@ class StackStoreImpl extends SnapshotStore implements StackStore {
   };
 
   hydrate = (layers: Layer[]): void => {
-    this.state = { stack: layers.map((l) => ({ ...l, hydrated: true }) as InternalLayer) };
-    // Hydration comes from the router; bypass syncRouter to avoid echoing
-    // back. Seed lastIdSeq so the next genuine shape change is detected.
+    // Content-addressing is the invariant (ADR 0002): the caller-supplied id
+    // is ignored — we re-derive from (kind, props) so hydrate cannot smuggle
+    // in a layer whose id disagrees with a subsequent push of the same
+    // (kind, props).
+    this.state = {
+      stack: layers.map(
+        (l) => ({ ...l, id: hashLayerId(l.kind, l.props), hydrated: true }) as InternalLayer,
+      ),
+    };
     this.lastIdSeq = this.state.stack.map((l) => l.id);
     this.emit();
   };
