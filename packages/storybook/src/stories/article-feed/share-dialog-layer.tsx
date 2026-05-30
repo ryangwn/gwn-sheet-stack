@@ -3,9 +3,9 @@ import React from 'react';
 import { useLayer } from '@gwn-sheet-stack/react';
 import * as Dialog from '@radix-ui/react-dialog';
 
-import { useRadixDialog } from '../useRadixDialog';
-import { usePortalContainer } from './PortalContainerContext';
+import { useRadixDialog } from '../use-radix-dialog';
 import { articleById } from './data';
+import { usePortalContainer } from './portal-container-context';
 import { FONT_SANS, FONT_SERIF } from './tokens';
 
 const DESTINATIONS: Array<{ label: string; glyph: string; bg: string; color: string }> = [

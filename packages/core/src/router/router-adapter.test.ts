@@ -226,11 +226,12 @@ describe('RouterAdapter wiring', () => {
   test('hydrated layers have no resolve (promise never settles)', () => {
     const adapter = makeMockAdapter();
     const store = createStackStore({ mountWindow: 3, router: adapter });
-    store.hydrate([{ id: 'L1', kind: 'a', phase: 'active' }]);
-    void store.getState().stack[0]!;
+    store.hydrate([{ id: 'ignored', kind: 'a', phase: 'active' }]);
+    // hydrate re-derives the id from (kind, props) — see ADR 0002.
+    const id = store.getState().stack[0]!.id;
     // No resolve → dispatching DISMISSED should not throw and stack empties
-    store.dispatch('L1', { type: 'DISMISS', source: 'router' });
-    store.dispatch('L1', { type: 'DISMISSED' });
+    store.dispatch(id, { type: 'DISMISS', source: 'router' });
+    store.dispatch(id, { type: 'DISMISSED' });
     expect(store.getState().stack).toHaveLength(0);
   });
 

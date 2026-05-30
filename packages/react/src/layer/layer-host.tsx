@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useRef } from 'react';
 
 import { useStack } from '../stack/context';
-import { LayerContext } from './LayerContext';
+import { LayerContext } from './layer-context';
 
 interface LayerHostProps {
   layerId: string;

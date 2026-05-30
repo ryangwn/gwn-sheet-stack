@@ -1,7 +1,7 @@
 // Store
 export { createStackStore } from './store/store';
 export { LRUMountWindow } from './store/lru';
-export { hashLayerId, stableStringify, validateSerializableProps } from './store/layerId';
+export { hashLayerId, stableStringify, validateSerializableProps } from './store/layer-id';
 export type {
   SheetRegistry,
   SnapshotProvider,
@@ -26,11 +26,11 @@ export type {
 } from './store/fsm';
 
 // Presentation
-export { inertForLayer } from './presentation/inertForLayer';
+export { inertForLayer } from './presentation/inert-for-layer';
 
 // Events
-export { EventBus } from './event/eventBus';
+export { EventBus } from './event/event-bus';
 
 // Router
-export { historyAdapter } from './router/historyAdapter';
-export type { HistoryAdapterOptions, RouteEntry } from './router/historyAdapter';
+export { historyAdapter } from './router/history-adapter';
+export type { HistoryAdapterOptions, RouteEntry } from './router/history-adapter';

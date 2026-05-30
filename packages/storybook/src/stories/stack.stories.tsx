@@ -12,8 +12,8 @@ import {
   PortalContainerContext,
   articleFeedRegistry,
 } from './article-feed';
-import { useRadixDialog } from './useRadixDialog';
-import { useVaulLayer } from './useVaulLayer';
+import { useRadixDialog } from './use-radix-dialog';
+import { useVaulLayer } from './use-vaul-layer';
 
 const RADIX_DIALOG_STYLES = `
   @keyframes radix-overlay-in { from { opacity: 0 } to { opacity: 1 } }

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 
-import { historyAdapter } from './historyAdapter';
+import { historyAdapter } from './history-adapter';
 
 const KEY = '__ss';
 

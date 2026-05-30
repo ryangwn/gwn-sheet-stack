@@ -52,16 +52,16 @@ function compile(entry: RouteEntry): CompiledRoute {
 }
 
 function matchTop(compiled: CompiledRoute[], pathname: string): SerializedLayer | null {
-  for (const c of compiled) {
-    const m = c.regex.exec(pathname);
-    if (!m) continue;
+  for (const route of compiled) {
+    const match = route.regex.exec(pathname);
+    if (!match) continue;
     const params: Record<string, string> = {};
-    c.keys.forEach((k, i) => {
-      params[k] = decodeURIComponent(m[i + 1]!);
+    route.keys.forEach((key, i) => {
+      params[key] = decodeURIComponent(match[i + 1]!);
     });
     return {
-      kind: c.entry.kind,
-      props: c.entry.extract(params),
+      kind: route.entry.kind,
+      props: route.entry.extract(params),
       flavor: 'route-bound' as LayerFlavor,
     };
   }
@@ -70,8 +70,8 @@ function matchTop(compiled: CompiledRoute[], pathname: string): SerializedLayer 
 
 function readSliceFromHistory(): SerializedLayer[] {
   if (typeof window === 'undefined') return [];
-  const s = (window.history.state as SheetStackState | null)?.[STATE_KEY];
-  return Array.isArray(s) ? (s as SerializedLayer[]) : [];
+  const historyState = (window.history.state as SheetStackState | null)?.[STATE_KEY];
+  return Array.isArray(historyState) ? (historyState as SerializedLayer[]) : [];
 }
 
 function stripTop(stack: SerializedLayer[]): SerializedLayer[] {
@@ -82,6 +82,25 @@ function stripTop(stack: SerializedLayer[]): SerializedLayer[] {
   return top.flavor === 'ephemeral' ? stack : stack.slice(0, -1);
 }
 
+// Reconstruct the full stack from the persisted below-top slice plus the
+// route-bound layer implied by the current URL.
+//
+// `stripTop` keeps ephemerals in `state.ss` and drops route-bound tops. So a
+// slice ending with an ephemeral IS the full stack — appending the
+// URL-matched route-bound layer would produce `[…, ephemeral, route-bound]`
+// (e.g. route A → ephemeral B → ephemeral C; back to B-entry has
+// `__ss=[A,B]`, URL still matches A, and a naive append yields `[A,B,A]`
+// length 3 → store sees no shrink → C never dismissed).
+function reconstructStack(
+  slice: SerializedLayer[],
+  matched: SerializedLayer | null,
+): SerializedLayer[] {
+  if (!matched) return slice;
+  const top = slice[slice.length - 1];
+  if (top && top.flavor === 'ephemeral') return slice;
+  return [...slice, matched];
+}
+
 export function historyAdapter(opts: HistoryAdapterOptions = {}): RouterAdapter {
   const compiled: CompiledRoute[] = (opts.routes ?? []).map(compile);
 
@@ -89,10 +108,7 @@ export function historyAdapter(opts: HistoryAdapterOptions = {}): RouterAdapter 
     read() {
       const slice = readSliceFromHistory();
       if (compiled.length === 0 || typeof window === 'undefined') return slice;
-      // If the URL matches a route, append the synthesised top so the
-      // caller sees the full desired stack.
-      const matched = matchTop(compiled, window.location.pathname);
-      return matched ? [...slice, matched] : slice;
+      return reconstructStack(slice, matchTop(compiled, window.location.pathname));
     },
     write(stack) {
       if (typeof window === 'undefined') return;
@@ -118,17 +134,28 @@ export function historyAdapter(opts: HistoryAdapterOptions = {}): RouterAdapter 
     },
     onPopState(cb) {
       if (typeof window === 'undefined') return () => {};
-      const handler = () => {
+      const reconcile = () => {
         const slice = readSliceFromHistory();
         if (compiled.length === 0) {
           cb(slice);
           return;
         }
-        const matched = matchTop(compiled, window.location.pathname);
-        cb(matched ? [...slice, matched] : slice);
+        cb(reconstructStack(slice, matchTop(compiled, window.location.pathname)));
       };
-      window.addEventListener('popstate', handler);
-      return () => window.removeEventListener('popstate', handler);
+      // bfcache: iOS Safari / Firefox restore the page from cache without
+      // firing popstate. The component tree remounts with an empty in-memory
+      // stack but `history.state.ss` still holds the prior session's slice.
+      // Without this, the next history.back() walks past stale entries.
+      // `event.persisted === true` is the bfcache restore signal.
+      const onPageShow = (event: PageTransitionEvent) => {
+        if (event.persisted) reconcile();
+      };
+      window.addEventListener('popstate', reconcile);
+      window.addEventListener('pageshow', onPageShow);
+      return () => {
+        window.removeEventListener('popstate', reconcile);
+        window.removeEventListener('pageshow', onPageShow);
+      };
     },
     pushHistory() {
       if (typeof window === 'undefined') return;

@@ -44,5 +44,8 @@
     "build": "tsup src/index.ts --format esm --dts --clean",
     "typecheck": "tsc --noEmit",
     "test": "bun test"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^20.9.0"
   }
 }

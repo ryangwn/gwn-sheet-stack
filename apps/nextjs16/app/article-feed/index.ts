@@ -1,12 +1,12 @@
-import { ArticleDetailLayer } from './ArticleDetailLayer';
-import { ArticleSummaryLayer } from './ArticleSummaryLayer';
-import { ShareDialogLayer } from './ShareDialogLayer';
+import { ArticleDetailLayer } from './article-detail-layer';
+import { ArticleSummaryLayer } from './article-summary-layer';
+import { ShareDialogLayer } from './share-dialog-layer';
 
-export { ArticleListScreen } from './ArticleListScreen';
-export { ArticleDetailLayer } from './ArticleDetailLayer';
-export { ArticleSummaryLayer } from './ArticleSummaryLayer';
-export { ShareDialogLayer } from './ShareDialogLayer';
-export { PortalContainerContext } from './PortalContainerContext';
+export { ArticleListScreen } from './article-list-screen';
+export { ArticleDetailLayer } from './article-detail-layer';
+export { ArticleSummaryLayer } from './article-summary-layer';
+export { ShareDialogLayer } from './share-dialog-layer';
+export { PortalContainerContext } from './portal-container-context';
 
 export const articleFeedRegistry = {
   'article-detail': ArticleDetailLayer,

@@ -18,11 +18,11 @@ interface LayerRef {
 }
 
 function isAtOrBelow(detentId: string, boundaryId: string, detents: DetentRef[]): boolean {
-  const idx = detents.findIndex((d) => d.id === detentId);
-  const boundaryIdx = detents.findIndex((d) => d.id === boundaryId);
-  if (idx === -1 || boundaryIdx === -1) return false;
+  const index = detents.findIndex((d) => d.id === detentId);
+  const boundaryIndex = detents.findIndex((d) => d.id === boundaryId);
+  if (index === -1 || boundaryIndex === -1) return false;
   // lower index = smaller size = lower detent
-  return idx <= boundaryIdx;
+  return index <= boundaryIndex;
 }
 
 export function inertForLayer(

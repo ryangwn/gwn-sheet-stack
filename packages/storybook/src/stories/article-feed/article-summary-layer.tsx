@@ -3,10 +3,10 @@ import React from 'react';
 import { useLayer, useStack } from '@gwn-sheet-stack/react';
 import { Drawer } from 'vaul';
 
-import { useVaulLayer } from '../useVaulLayer';
-import { PillButton } from './PillButton';
-import { usePortalContainer } from './PortalContainerContext';
+import { useVaulLayer } from '../use-vaul-layer';
 import { articleById } from './data';
+import { PillButton } from './pill-button';
+import { usePortalContainer } from './portal-container-context';
 import { FONT_SERIF, chip, grabber, sheetSurface } from './tokens';
 
 export function ArticleSummaryLayer() {

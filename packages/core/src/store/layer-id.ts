@@ -6,9 +6,9 @@
 // consequence, a Layer with the same (kind, props) cannot appear in the stack
 // twice — push of a duplicate brings the existing Layer to the top instead.
 
-function isPlainObject(v: unknown): v is Record<string, unknown> {
-  if (v === null || typeof v !== 'object') return false;
-  const proto = Object.getPrototypeOf(v);
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== 'object') return false;
+  const proto = Object.getPrototypeOf(value);
   return proto === Object.prototype || proto === null;
 }
 
@@ -20,15 +20,15 @@ function describe(value: unknown): string {
 
 export function validateSerializableProps(value: unknown, path = ''): void {
   if (value === undefined || value === null) return;
-  const t = typeof value;
-  if (t === 'string' || t === 'number' || t === 'boolean') return;
-  if (t === 'function' || t === 'symbol' || t === 'bigint') {
+  const valueType = typeof value;
+  if (valueType === 'string' || valueType === 'number' || valueType === 'boolean') return;
+  if (valueType === 'function' || valueType === 'symbol' || valueType === 'bigint') {
     throw new Error(
-      `[sheet-stack] Layer props must be JSON-serializable; found ${t} at ${path || '<root>'}.`,
+      `[sheet-stack] Layer props must be JSON-serializable; found ${valueType} at ${path || '<root>'}.`,
     );
   }
   if (Array.isArray(value)) {
-    value.forEach((v, i) => validateSerializableProps(v, `${path}[${i}]`));
+    value.forEach((item, i) => validateSerializableProps(item, `${path}[${i}]`));
     return;
   }
   if (isPlainObject(value)) {
@@ -45,15 +45,15 @@ export function validateSerializableProps(value: unknown, path = ''): void {
 export function stableStringify(value: unknown): string {
   if (value === undefined) return 'undefined';
   if (value === null) return 'null';
-  const t = typeof value;
-  if (t === 'string') return JSON.stringify(value);
-  if (t === 'number' || t === 'boolean') return String(value);
+  const valueType = typeof value;
+  if (valueType === 'string') return JSON.stringify(value);
+  if (valueType === 'number' || valueType === 'boolean') return String(value);
   if (Array.isArray(value)) {
     return `[${value.map(stableStringify).join(',')}]`;
   }
   if (isPlainObject(value)) {
     const keys = Object.keys(value).sort();
-    return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify(value[k])}`).join(',')}}`;
+    return `{${keys.map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`;
   }
   // Unreachable if validateSerializableProps ran first.
   throw new Error(`[sheet-stack] cannot stableStringify ${describe(value)}`);

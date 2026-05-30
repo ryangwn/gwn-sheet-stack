@@ -38,9 +38,9 @@ bun add @gwn-sheet-stack/core @gwn-sheet-stack/react @gwn-sheet-stack/adapters-r
 
 ## Concepts
 
-A **Layer** is one overlay in a stack — it has an id, a `kind` (registry key), an FSM `phase`, and a `presentation` (`sheet | modal | panel | push`). The **Stage** is the single host component that mounts every Layer in the stack and lives in the **StackStore**, a vanilla-TS state container that runs the FSM and broadcasts changes.
+A **Layer** is one overlay in a stack — it has a content-addressed id, a `kind` (registry key on `Stage`), and an FSM `phase`. The library is **headless** (see ADR 0001): the actual UI for each `kind` is whatever component you map it to — vaul, Radix Dialog, plain divs — wrapped by a small adapter you write. The **Stage** is the single host component that mounts every Layer in the stack; the **StackStore** is a vanilla-TS state container that runs the FSM and broadcasts changes.
 
-Layers can be serialized to URL through a pluggable **RouterAdapter**. Backgrounded Layers stay mounted up to the **mount window**; beyond that they serialize to a **Snapshot** and re-hydrate on re-entry.
+Layers project onto browser history through a pluggable **RouterAdapter** (history is the source of truth — see ADR 0002). Backgrounded Layers stay mounted up to the **mount window**; beyond that they serialize to a **Snapshot** and re-hydrate on re-entry.
 
 For the full domain vocabulary see [`CONTEXT.md`](./CONTEXT.md).
 

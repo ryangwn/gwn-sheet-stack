@@ -80,6 +80,9 @@
     "packages/core": {
       "name": "@gwn-sheet-stack/core",
       "version": "0.1.0",
+      "devDependencies": {
+        "@happy-dom/global-registrator": "^20.9.0",
+      },
     },
     "packages/react": {
       "name": "@gwn-sheet-stack/react",

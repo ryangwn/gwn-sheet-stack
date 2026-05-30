@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test';
 
-import { LRUMountWindow, createStackStore, renderModeFor } from '../index';
+import { LRUMountWindow, createStackStore, hashLayerId, renderModeFor } from '../index';
 
 describe('renderModeFor', () => {
   test('topmost layer (indexFromTop=0) is always visible', () => {
@@ -248,14 +248,16 @@ describe('createStackStore', () => {
     const store = createStackStore({ mountWindow: 3 });
     let calls = 0;
     store.subscribe(() => calls++);
+    // Content-addressed (ADR 0002): hydrate re-derives ids from (kind, props);
+    // caller-supplied ids are ignored to keep the invariant uniform with push.
     const layers: import('../index').Layer[] = [
-      { id: 'h1', kind: 'settings', phase: 'active' },
-      { id: 'h2', kind: 'profile', phase: 'background' },
+      { id: 'ignored-h1', kind: 'settings', phase: 'active' },
+      { id: 'ignored-h2', kind: 'profile', phase: 'background' },
     ];
     store.hydrate(layers);
     expect(store.getState().stack).toHaveLength(2);
-    expect(store.getState().stack[0]!.id).toBe('h1');
-    expect(store.getState().stack[1]!.id).toBe('h2');
+    expect(store.getState().stack[0]!.id).toBe(hashLayerId('settings', undefined));
+    expect(store.getState().stack[1]!.id).toBe(hashLayerId('profile', undefined));
     expect(calls).toBe(1);
   });
 
