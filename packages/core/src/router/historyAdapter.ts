@@ -134,7 +134,7 @@ export function historyAdapter(opts: HistoryAdapterOptions = {}): RouterAdapter 
     },
     onPopState(cb) {
       if (typeof window === 'undefined') return () => {};
-      const handler = () => {
+      const reconcile = () => {
         const slice = readSliceFromHistory();
         if (compiled.length === 0) {
           cb(slice);
@@ -142,8 +142,20 @@ export function historyAdapter(opts: HistoryAdapterOptions = {}): RouterAdapter 
         }
         cb(reconstructStack(slice, matchTop(compiled, window.location.pathname)));
       };
-      window.addEventListener('popstate', handler);
-      return () => window.removeEventListener('popstate', handler);
+      // bfcache: iOS Safari / Firefox restore the page from cache without
+      // firing popstate. The component tree remounts with an empty in-memory
+      // stack but `history.state.ss` still holds the prior session's slice.
+      // Without this, the next history.back() walks past stale entries.
+      // `event.persisted === true` is the bfcache restore signal.
+      const onPageShow = (event: PageTransitionEvent) => {
+        if (event.persisted) reconcile();
+      };
+      window.addEventListener('popstate', reconcile);
+      window.addEventListener('pageshow', onPageShow);
+      return () => {
+        window.removeEventListener('popstate', reconcile);
+        window.removeEventListener('pageshow', onPageShow);
+      };
     },
     pushHistory() {
       if (typeof window === 'undefined') return;
