@@ -51,27 +51,42 @@ function TriggerButton() {
 
 ### 3. Build an adapter
 
-The adapter contract is one hook + two refs:
+An adapter wires a third-party surface (vaul, Radix Dialog, plain divs) into the FSM. The contract is:
+
+- Derive `open` from `useLayerPhase` — true while `presenting` / `active` / `dragging` / `snapping`.
+- Dispatch `PRESENTED` as soon as `phase === 'presenting'`.
+- Dispatch `DISMISSED` from a `setTimeout` matching the surface library's exit duration (vaul ≈ 500 ms, Radix ≈ 200 ms).
+- Route user-initiated close intents through `layer.close()`.
 
 ```tsx
-import { useLayerPresentation } from '@gwn-sheet-stack/react';
+import { useLayer, useLayerPhase, useStack } from '@gwn-sheet-stack/react';
+import { useEffect } from 'react';
 
-// `duration` is in seconds (typical 0.2–0.5).
-const ENTER = { kind: 'modal', direction: 'in', spring: { duration: 0.42, bounce: 0.18 } } as const;
-const EXIT = { kind: 'modal', direction: 'out', spring: { duration: 0.22, bounce: 0 } } as const;
+const EXIT_MS = 200; // match the surface library
 
-function MyModalAdapter() {
-  const { surfaceRef, backdropRef, dismiss } = useLayerPresentation({ enter: ENTER, exit: EXIT });
-  return (
-    <>
-      <div ref={backdropRef} onClick={dismiss} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', opacity: 0 }} />
-      <div ref={surfaceRef} role="dialog" style={{ position: 'fixed', top: '50%', left: '50%' }}>
-        <h2>Hello!</h2>
-      </div>
-    </>
-  );
+function useMyDialogLayer() {
+  const layer = useLayer();
+  const phase = useLayerPhase(layer.id);
+  const store = useStack();
+
+  useEffect(() => {
+    if (phase === 'presenting') store.dispatch(layer.id, { type: 'PRESENTED' });
+  }, [phase, layer.id, store]);
+
+  useEffect(() => {
+    if (phase !== 'dismissing') return;
+    const id = setTimeout(() => store.dispatch(layer.id, { type: 'DISMISSED' }), EXIT_MS);
+    return () => clearTimeout(id);
+  }, [phase, layer.id, store]);
+
+  return {
+    open: phase === 'presenting' || phase === 'active',
+    onOpenChange: (next: boolean) => { if (!next) layer.close(); },
+  };
 }
 ```
+
+See `useVaulLayer.ts` and `useRadixDialog.ts` in this folder for full reference implementations.
 
 The FSM owns mount/unmount — adapters wrap whichever third-party component you like with `open` pinned to `true` and route dismiss intents through `dismiss()`.
 

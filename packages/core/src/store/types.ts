@@ -19,9 +19,9 @@ export interface SnapshotProvider {
  * `history.back()` so the URL stays authoritative (ADR 0002).
  *
  * 'ephemeral' Layers (the default for raw `stack.push()`) do not change the
- * URL. `layer.close()` dispatches DISMISS directly until issue #5 lands
- * synthetic history entries, at which point ephemeral close also routes
- * through `history.back()`.
+ * URL but still get a synthetic history entry on push so browser-Back
+ * dismisses them in LIFO order. `layer.close()` dispatches DISMISS and pops
+ * that synthetic entry.
  */
 export type LayerFlavor = 'route-bound' | 'ephemeral';
 
