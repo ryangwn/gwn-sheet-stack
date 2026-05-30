@@ -1,22 +1,27 @@
 export class LRUMountWindow {
   private order = new Map<string, undefined>();
+  private mounted = new Map<string, undefined>();
 
   constructor(public readonly windowSize: number) {}
 
   touch(id: string): void {
-    this.order.delete(id);
+    if (this.order.has(id)) this.order.delete(id);
     this.order.set(id, undefined);
+
+    if (this.mounted.has(id)) {
+      this.mounted.delete(id);
+      this.mounted.set(id, undefined);
+      return;
+    }
+    this.mounted.set(id, undefined);
+    if (this.mounted.size > this.windowSize) {
+      const oldest = this.mounted.keys().next().value;
+      if (oldest !== undefined) this.mounted.delete(oldest);
+    }
   }
 
   isMounted(id: string): boolean {
-    if (!this.order.has(id)) return false;
-    const threshold = this.order.size - this.windowSize;
-    let i = 0;
-    for (const key of this.order.keys()) {
-      if (key === id) return i >= threshold;
-      i++;
-    }
-    return false;
+    return this.mounted.has(id);
   }
 
   computeOverflow(): string[] {
@@ -32,5 +37,6 @@ export class LRUMountWindow {
 
   forget(id: string): void {
     this.order.delete(id);
+    this.mounted.delete(id);
   }
 }
